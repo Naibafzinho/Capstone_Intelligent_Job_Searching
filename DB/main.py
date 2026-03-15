@@ -1,5 +1,6 @@
 from test_DB import DBManagement as UserDB
 import pprint
+from bson import ObjectId
 
 db = UserDB()
 
@@ -11,9 +12,9 @@ db = UserDB()
 
 #db.download_file()
 
-#test = db.insert_user({"userId": "USR002",})
-#pprint.pprint(test)
+test = db.update_user_value(flt={"username": "peter"}, attribute="lastName", new_value="Smith")
+pprint.pprint(test)
 
-db.update_user_value(flt={"username": None}, attribute="lastName", new_value="Smith")
+#db.update_user_value(flt={"username": None}, attribute="lastName", new_value="Smith")
 
 db.close()

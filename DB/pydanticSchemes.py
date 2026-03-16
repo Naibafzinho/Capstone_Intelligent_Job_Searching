@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from typing import List, Optional
 from enum import Enum
 from bson import ObjectId
@@ -13,12 +13,12 @@ class JobType(str, Enum):
     OTHER = "other"
 
 class expectedSalary(str, Enum):
-    ZERO_TO_30K = "0-30K"
-    THIRTYK_TO_60K = "30K-60K"
-    SIXTYK_TO_100K = "60K-100K"
-    ONE_HUNDRED_K_TO_150K = "100K-150K"
-    ONE_FIFTY_K_TO_200K = "150K-200K"
-    TWO_HUNDRED_K_PLUS = "200K+"
+    ZERO_TO_30K = "0-30k"
+    THIRTYK_TO_60K = "30k-60k"
+    SIXTYK_TO_100K = "60k-100k"
+    ONE_HUNDRED_K_TO_150K = "100k-150k"
+    ONE_FIFTY_K_TO_200K = "150k-200k"
+    TWO_HUNDRED_K_PLUS = "200k+"
 
 class industry(str, Enum):
     TECH = "tech"
@@ -54,10 +54,8 @@ class companySize(str, Enum):
 
 
 class UserScheme(BaseModel):
-    #This should not be Optional after development
-    username: Optional[str] = None
-    #This should not be Optional after development
-    passwordHash: Optional[str] = None
+    username: str
+    passwordHash: str
     locationConfig: Optional[List[str]] = []
     expectedSalaryConfig: Optional[List[expectedSalary]] = []
     jobTypeConfig: Optional[List[JobType]] = []
@@ -70,41 +68,77 @@ class UserScheme(BaseModel):
     email: Optional[str] = None
     phone: Optional[str] = None
 
+    @field_validator(
+        'locationConfig', 
+        'jobTypeConfig', 
+        'industryConfig',
+        'experienceLevelConfig',
+        'remoteConfig',
+        'companySizeConfig',
+        'email',
+        mode='before'
+    )
+    @classmethod
+    def normalize_enums(cls, v):
+        if isinstance(v, list):
+            return [item.upper() if isinstance(item, str) else item for item in v]
+        return v
+
 class ResumeScheme(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    #This should not be Optional after development
-    filename: Optional[str] = None
-    #This should not be Optional after development
-    userId: Optional[ObjectId] = None
-    #This should not be Optional after development
-    data: Optional[bytes] = None
-    uploadDate: Optional[str] = None
-    #This should not be Optional after development
-    isActive: Optional[bool] = None
+    
+    filename: str
+    userId: ObjectId
+    data: bytes
+    uploadDate: str
+    isActive: bool
     tags: Optional[List[str]] = []
     extractedKeywords: Optional[List[str]] = []
     atsScore: Optional[int] = None
 
+    @field_validator(
+        'tags', 
+        'extractedKeywords',
+        mode='before'
+    )
+    @classmethod
+    def normalize_enums(cls, v):
+        if isinstance(v, list):
+            return [item.upper() if isinstance(item, str) else item for item in v]
+        return v
+
 class JobPostingScheme(BaseModel):
-    #This should not be Optional after development
-    title: Optional[str] = None
+    title: str
     datePosted: Optional[str] = None
-    #This should not be Optional after development
-    dateExtracted: Optional[str] = None
+    dateExtracted: str
     dateExpiring: Optional[str] = None
-    #This should not be Optional after development
-    domain: Optional[str] = None
+    domain: str
     company: Optional[str] = None
     locationC: Optional[List[str]] = []
-    salaryRangeC: Optional[expectedSalary] = None
+    salaryRangeC: Optional[List[expectedSalary]] = None
     jobTypeC: Optional[List[JobType]] = []
     industryC: Optional[List[industry]] = []
     experienceLevelC: Optional[List[experienceLevel]] = []
     remoteC: Optional[List[remote]] = []
     companySizeC: Optional[companySize] = None
-    #This should not be Optional after development
-    text: Optional[str] = None
-    #This should not be Optional after development
-    url: Optional[str] = None
+    text: str
+    url: str
     keywords: Optional[List[str]] = []
+
+    @field_validator(
+        'company',
+        'locationC', 
+        'jobTypeC', 
+        'industryC',
+        'experienceLevelC',
+        'remoteC',
+        'companySizeC',
+        'keywords',
+        mode='before'
+    )
+    @classmethod
+    def normalize_enums(cls, v):
+        if isinstance(v, list):
+            return [item.upper() if isinstance(item, str) else item for item in v]
+        return v
 

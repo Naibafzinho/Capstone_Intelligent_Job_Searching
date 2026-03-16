@@ -1,5 +1,3 @@
-from unittest import case
-
 from pymongo import MongoClient
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
@@ -17,12 +15,12 @@ class DBManagement:
 
         Example: fetch({'userId': 'USR001'}, {'username': 1, 'email': 1})
         """
-        coll = self.db[collection_name]
         flt = self.prepare_filter(filter)
+        coll = self.db[collection_name]
         docs = list(coll.find(flt, projection))
         return [self.stringify_id(d) for d in docs]
-    
-    def insert_entry(self, collection_name: str, Entry: Dict[str, Any]) -> Optional[str]:
+
+    def insert_user_entry(self, Entry: Dict[str, Any], collection_name: str) -> Optional[str]:
         """Insert a user document into the users collection.
 
         Ensures all fields listed in `UserScheme` exist on the document; missing
@@ -30,7 +28,22 @@ class DBManagement:
 
         Returns the inserted document id as a string on success, otherwise None.
         """
-        coll = self.db[collection_name]
+        
+        if collection_name == "Resumes":
+            userId = Entry.get("userId")
+            if userId is None:
+                print("Upload failed: userId is required for resume entries")
+                return None
+            try:
+                #count how many resumes belong to the user with the given username
+                docs = self.fetch(collection_name="Resumes", filter={"userId": userId})
+            except Exception as e:
+                print(f"Upload failed: {e}")
+                return None
+            if len(docs) >= 10:
+                print(f"Upload failed: User with ID:{userId} already has 10 resumes")
+                return None              
+
         try:
             validated_Entry = self.get_Scheme(collection_name)(**Entry)
             doc = validated_Entry.model_dump()
@@ -39,20 +52,21 @@ class DBManagement:
             return None
 
         try:
+            coll = self.db[collection_name]
             res = coll.insert_one(doc)
             print(f"Upload successful: inserted_id={res.inserted_id}")
             return str(res.inserted_id)
         except Exception as e:
             print(f"Upload failed: {e}")
-            return None
-        
-    def update_value(self, flt: Dict[str, Any], attribute: str, new_value: Any, collection_name: str = "User") -> int:
+            return None        
+    
+    def update_value(self, flt: Dict[str, Any], attribute: str, new_value: Any, collection_name: str) -> int:
         """Update `attribute` to `new_value` for documents matching `flt` in the User collection.
 
         - `flt` should be a dict filter (same format accepted by `fetch`).
         Returns the number of modified documents (int). Prints success/failure to the terminal.
         """
-        coll = self.db[collection_name]
+        
         filter_prepared = self.prepare_filter(flt)
 
         try:
@@ -66,6 +80,7 @@ class DBManagement:
             return 0
             
         try:
+            coll = self.db[collection_name]
             res = coll.update_many(filter_prepared, {"$set": {attribute: new_value}})
             print(f"Update successful: matched={res.matched_count}, modified={res.modified_count}")
             return res.modified_count
@@ -92,11 +107,12 @@ class DBManagement:
             return {}
         # convert _id string to ObjectId if present
         out = dict(flt)
-        if "_id" in out and isinstance(out["_id"], str):
-            try:
-                out["_id"] = ObjectId(out["_id"])
-            except Exception:
-                pass
+        for key in ("_id", "userId"):
+            if key in out and isinstance(out[key], str):
+                try:
+                    out[key] = ObjectId(out[key])
+                except Exception:
+                    pass
         return out
     
     def get_Scheme(self, collection_name: str):

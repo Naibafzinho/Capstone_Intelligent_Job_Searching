@@ -1,7 +1,9 @@
+from unittest import case
+
 from pymongo import MongoClient
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
-from pydanticSchemes import UserScheme
+from pydanticSchemes import UserScheme, ResumeScheme, JobPostingScheme
 import os
 
 class DBManagement:
@@ -15,12 +17,12 @@ class DBManagement:
 
         Example: fetch({'userId': 'USR001'}, {'username': 1, 'email': 1})
         """
-        self.coll = self.db[collection_name]
+        coll = self.db[collection_name]
         flt = self.prepare_filter(filter)
-        docs = list(self.coll.find(flt, projection))
+        docs = list(coll.find(flt, projection))
         return [self.stringify_id(d) for d in docs]
     
-    def insert_user(self, UserEntry: Dict[str, Any]) -> Optional[str]:
+    def insert_entry(self, collection_name: str, Entry: Dict[str, Any]) -> Optional[str]:
         """Insert a user document into the users collection.
 
         Ensures all fields listed in `UserScheme` exist on the document; missing
@@ -28,10 +30,10 @@ class DBManagement:
 
         Returns the inserted document id as a string on success, otherwise None.
         """
-        coll = self.db["User"]
+        coll = self.db[collection_name]
         try:
-            validated_UserEntry = UserScheme(**UserEntry)
-            doc = validated_UserEntry.model_dump()
+            validated_Entry = self.get_Scheme(collection_name)(**Entry)
+            doc = validated_Entry.model_dump()
         except Exception as e:
             print(f"Validation failed: {e}")
             return None
@@ -44,7 +46,7 @@ class DBManagement:
             print(f"Upload failed: {e}")
             return None
         
-    def update_user_value(self, flt: Dict[str, Any], attribute: str, new_value: Any, collection_name: str = "User") -> int:
+    def update_value(self, flt: Dict[str, Any], attribute: str, new_value: Any, collection_name: str = "User") -> int:
         """Update `attribute` to `new_value` for documents matching `flt` in the User collection.
 
         - `flt` should be a dict filter (same format accepted by `fetch`).
@@ -54,7 +56,7 @@ class DBManagement:
         filter_prepared = self.prepare_filter(flt)
 
         try:
-            validation = UserScheme(**{attribute: new_value})  # validate the new value for the given attribute
+            validation = self.get_Scheme(collection_name)(**{attribute: new_value})  # validate the new value for the given attribute
             validated_dict = validation.model_dump(exclude_unset=True).items()  # get the validated attribute and value
             for attr, val in validated_dict:
                 attribute = attr
@@ -96,6 +98,18 @@ class DBManagement:
             except Exception:
                 pass
         return out
+    
+    def get_Scheme(self, collection_name: str):
+        """Return the Pydantic scheme class corresponding to the collection name."""
+        match collection_name:
+            case "Users":
+                return UserScheme
+            case "Resumes":
+                return ResumeScheme
+            case "JobPostings":
+                return JobPostingScheme
+            case _:
+                raise ValueError(f"No scheme defined for collection: {collection_name}")
 
     def close(self) -> None:
         self.client.close()

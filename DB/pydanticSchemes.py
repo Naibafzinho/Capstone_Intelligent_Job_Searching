@@ -1,17 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from enum import Enum
 from bson import ObjectId
-from datetime import date, datetime, time
 
 class JobType(str, Enum):
-    FULL_TIME = "FULL-TIME"
-    PART_TIME = "PART-TIME"
-    CONTRACT = "CONTRACT"
-    TEMPORARY = "TEMPORARY"
-    INTERN = "INTERN"
-    VOLUNTEER = "VOLUNTEER"
-    OTHER = "OTHER"
+    FULL_TIME = "full-time"
+    PART_TIME = "part-time"
+    CONTRACT = "contract"
+    TEMPORARY = "temporary"
+    INTERN = "intern"
+    VOLUNTEER = "volunteer"
+    OTHER = "other"
 
 class expectedSalary(str, Enum):
     ZERO_TO_30K = "0-30K"
@@ -22,26 +21,26 @@ class expectedSalary(str, Enum):
     TWO_HUNDRED_K_PLUS = "200K+"
 
 class industry(str, Enum):
-    TECH = "Tech"
-    FINANCE = "Finance"
-    HEALTHCARE = "Healthcare"
-    EDUCATION = "Education"
-    MANUFACTURING = "Manufacturing"
-    RETAIL = "Retail"
-    OTHER = "Other"
+    TECH = "tech"
+    FINANCE = "finance"
+    HEALTHCARE = "healthcare"
+    EDUCATION = "education"
+    MANUFACTURING = "manufacturing"
+    RETAIL = "retail"
+    OTHER = "other"
 
 class experienceLevel(str, Enum):
-    ENTRY_LEVEL = "Entry-Level"
-    MID_LEVEL = "Mid-Level"
-    SENIOR_LEVEL = "Senior-Level"
-    MANAGER = "Manager"
-    DIRECTOR = "Director"
-    EXECUTIVE = "Executive"
+    ENTRY_LEVEL = "entry-level"
+    MID_LEVEL = "mid-level"
+    SENIOR_LEVEL = "senior-level"
+    MANAGER = "manager"
+    DIRECTOR = "director"
+    EXECUTIVE = "executive"
 
 class remote(str, Enum):
-    REMOTE = "Remote"
-    ON_SITE = "On-Site"
-    HYBRID = "Hybrid"
+    REMOTE = "remote"
+    ON_SITE = "on-site"
+    HYBRID = "hybrid"
 
 class companySize(str, Enum):
     ONE_TO_10 = "1-10"
@@ -49,7 +48,10 @@ class companySize(str, Enum):
     FIFTY_ONE_TO_200 = "51-200"
     TWO_HUNDRED_ONE_TO_500 = "201-500"
     FIVE_HUNDRED_ONE_TO_1000 = "501-1000"
-    ONE_THOUSAND_PLUS = "1000+"
+    ONE_THOUSAND_ONE_TO_5000 = "1001-5000"
+    FIVE_THOUSAND_ONE_TO_10000 = "5001-10000"
+    TEN_THOUSAND_PLUS = "10000+"
+
 
 class UserScheme(BaseModel):
     #This should not be Optional after development
@@ -69,13 +71,14 @@ class UserScheme(BaseModel):
     phone: Optional[str] = None
 
 class ResumeScheme(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     #This should not be Optional after development
     filename: Optional[str] = None
     #This should not be Optional after development
     userId: Optional[ObjectId] = None
     #This should not be Optional after development
     data: Optional[bytes] = None
-    uploadDate: Optional[date] = None
+    uploadDate: Optional[str] = None
     #This should not be Optional after development
     isActive: Optional[bool] = None
     tags: Optional[List[str]] = []
@@ -85,10 +88,10 @@ class ResumeScheme(BaseModel):
 class JobPostingScheme(BaseModel):
     #This should not be Optional after development
     title: Optional[str] = None
-    datePosted: Optional[date] = None
+    datePosted: Optional[str] = None
     #This should not be Optional after development
-    dateExtracted: Optional[datetime] = None
-    dateExpiring: Optional[date] = None
+    dateExtracted: Optional[str] = None
+    dateExpiring: Optional[str] = None
     #This should not be Optional after development
     domain: Optional[str] = None
     company: Optional[str] = None

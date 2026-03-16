@@ -12,7 +12,7 @@ db = UserDB()
 
 #db.download_file()
 
-test = db.update_user_value(flt={"username": "peter"}, attribute="lastName", new_value="Smith")
+test = db.insert_entry(collection_name="Users", Entry={"username": "testuser", "passwordHash": "hashedpassword123", "firstName": "Test", "lastName": "User", "email": "testuser@example.com", "phone": "123-456-7890", "locationConfig": ["New York", "San Francisco"], "expectedSalaryConfig": ["60K-100K", "100K-150K"], "jobTypeConfig": ["full-time"], "industryConfig": ["finance", "education", "tech", "retail"], "experienceLevelConfig": ["mid-level"], "remoteConfig": ["remote"], "companySizeConfig": ["51-200"]})
 pprint.pprint(test)
 
 #db.update_user_value(flt={"username": None}, attribute="lastName", new_value="Smith")

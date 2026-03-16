@@ -1,4 +1,4 @@
-from test_DB import DBManagement as UserDB
+from DB_Management import DBManagement as UserDB
 import pprint
 from bson import ObjectId
 
@@ -12,24 +12,21 @@ db = UserDB()
 
 #db.download_file()
 
-test = db.insert_JobPosting_entry(Entry={
-        "title": "Data Science Intern",
-        "datePosted": "2024-03-10",
-        "dateExtracted": "2024-03-10",
-        "dateExpiring": "2024-03-31",
-        "domain": "glassdoor.com",
-        "company": "FinanceHub LLC",
-        "locationC": ["Chicago, IL", "Remote"],
-        "salaryRangeC": ["0-30K", "30K-60K"],
-        "jobTypeC": ["intern"],
-        "industryC": ["finance"],
-        "experienceLevelC": ["entry-level"],
-        "remoteC": ["hybrid"],
-        "companySizeC": "501-1000",
-        "text": "FinanceHub is seeking a Data Science Intern for a 3-month summer program...",
-        "url": "https://glassdoor.com/jobs/view/345678",
-        "keywords": ["Python", "Pandas", "SQL", "Machine Learning", "Excel"]
-    })
+test = db.insert_entry(Entry={
+        "username": "Timmy_dev",
+        "passwordHash": "$2b$12$MQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6hsxq5BIDO",
+        "locationConfig": ["Chicago, IL"],
+        "expectedSalaryConfig": ["30K-60K", "60K-100K"],
+        "jobTypeConfig": ["PART-time", "intern", "contract"],
+        "industryConfig": ["education", "tech"],
+        "experienceLevelConfig": ["entry-level", "mid-level"],
+        "remoteConfig": ["on-site", "hybrid"],
+        "companySizeConfig": ["201-500", "501-1000"],
+        "firstName": "Marcos",
+        "lastName": "Rivera",
+        "email": "marcos.dev@gmail.com",
+        "phone": "555-456-7890"
+    }, collection_name="Users")
 pprint.pprint(test)
 
 #db.update_user_value(flt={"username": None}, attribute="lastName", new_value="Smith")

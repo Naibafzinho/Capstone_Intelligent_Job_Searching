@@ -69,7 +69,8 @@ class UserScheme(BaseModel):
     phone: Optional[str] = None
 
     @field_validator(
-        'locationConfig', 
+        'locationConfig',
+        'expectedSalaryConfig', 
         'jobTypeConfig', 
         'industryConfig',
         'experienceLevelConfig',
@@ -81,7 +82,7 @@ class UserScheme(BaseModel):
     @classmethod
     def normalize_enums(cls, v):
         if isinstance(v, list):
-            return [item.upper() if isinstance(item, str) else item for item in v]
+            return [item.lower() if isinstance(item, str) else item for item in v]
         return v
 
 class ResumeScheme(BaseModel):
@@ -104,7 +105,7 @@ class ResumeScheme(BaseModel):
     @classmethod
     def normalize_enums(cls, v):
         if isinstance(v, list):
-            return [item.upper() if isinstance(item, str) else item for item in v]
+            return [item.lower() if isinstance(item, str) else item for item in v]
         return v
 
 class JobPostingScheme(BaseModel):
@@ -139,6 +140,6 @@ class JobPostingScheme(BaseModel):
     @classmethod
     def normalize_enums(cls, v):
         if isinstance(v, list):
-            return [item.upper() if isinstance(item, str) else item for item in v]
+            return [item.lower() if isinstance(item, str) else item for item in v]
         return v
 

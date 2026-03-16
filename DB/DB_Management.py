@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
 from pydanticSchemes import UserScheme, ResumeScheme, JobPostingScheme
+import bcrypt
 import os
 
 class DBManagement:
@@ -20,7 +21,7 @@ class DBManagement:
         docs = list(coll.find(flt, projection))
         return [self.stringify_id(d) for d in docs]
 
-    def insert_user_entry(self, Entry: Dict[str, Any], collection_name: str) -> Optional[str]:
+    def insert_entry(self, Entry: Dict[str, Any], collection_name: str) -> Optional[str]:
         """Insert a user document into the users collection.
 
         Ensures all fields listed in `UserScheme` exist on the document; missing
@@ -43,6 +44,28 @@ class DBManagement:
             if len(docs) >= 10:
                 print(f"Upload failed: User with ID:{userId} already has 10 resumes")
                 return None              
+
+        if (collection_name == "Users"):
+            #use username fetch to check for existing user with same username
+
+            username = Entry.get("username")
+            if username is None:
+                print("Upload failed: username is required for user entries")
+                return None
+            existing_users = self.fetch(collection_name="Users", filter={"username": username})
+            if existing_users is None:
+                print("Upload failed: could not verify username uniqueness")
+                return None
+            if existing_users:
+                print(f"Upload failed: User with username {username} already exists")
+                return None
+            #hash the password before validation and insertion
+            password = Entry.get("passwordHash")
+            if password is None:
+                print("Upload failed: passwordHash is required for user entries")
+                return None
+            # hash the password and convert bytes to string
+            Entry["passwordHash"] = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()  
 
         try:
             validated_Entry = self.get_Scheme(collection_name)(**Entry)
@@ -69,6 +92,10 @@ class DBManagement:
         
         filter_prepared = self.prepare_filter(flt)
 
+        if attribute == "passwordHash" and collection_name == "Users":
+            # hash the new password and convert bytes to string
+            new_value = bcrypt.hashpw(new_value.encode(), bcrypt.gensalt()).decode()
+
         try:
             validation = self.get_Scheme(collection_name)(**{attribute: new_value})  # validate the new value for the given attribute
             validated_dict = validation.model_dump(exclude_unset=True).items()  # get the validated attribute and value
@@ -88,14 +115,65 @@ class DBManagement:
             print(f"Update failed: {e}")
             return 0
         
-    """
-    def lowercase_strings(self, doc: Dict[str, Any]) -> Dict[str, Any]:
-        '''Lowercase all string values in the document.'''
-        for key, value in doc.items():
-            if key.endswith("Config") | key.endswith("C"):
-                doc[key] = value.lower() if isinstance(value, str) else value  
-        return doc
-    """
+    def delete_entry(self, flt: Optional[Dict[str, Any]], collection_name: str) -> int:
+        """Delete documents matching `flt` from `collection_name`.
+
+        - `flt` may be None or a dict filter (same format accepted by `fetch`).
+        Returns the number of deleted documents (int). Prints success/failure to the terminal.
+        """
+
+        if not flt:
+            print("No filter provided, no documents deleted.")
+            return 0
+
+        filter_prepared = self.prepare_filter(flt)
+
+        try:
+            coll = self.db[collection_name]
+            res = coll.delete_many(filter_prepared)
+            print(f"Delete successful: deleted={res.deleted_count}")
+            return res.deleted_count
+        except Exception as e:
+            print(f"Delete failed: {e}")
+            return 0    
+
+    def login_check(self, username: str, password: str) -> bool:
+        """Check if a user with the given username and passwordHash exists in the Users collection.
+
+        Returns True if a matching user is found, otherwise False. Prints success/failure to the terminal.
+        """
+        try:
+            coll = self.db["Users"]
+            user = coll.find_one({"username": username})
+            stored_hash = user.get("passwordHash") if user else None
+            if user and stored_hash and bcrypt.checkpw(password.encode(), stored_hash.encode()):
+                print("Login successful")
+                return True
+            else:
+                print("Login failed: invalid username or password")
+                return False
+        except Exception as e:
+            print(f"Login check failed: {e}")
+            return False
+
+    def entry_exists(self, flt: Dict[str, Any], collection_name: str) -> Optional[int]:
+        """Check if any document matching `flt` exists in `collection_name`.
+
+        - `flt` should be a dict filter (same format accepted by `fetch`).
+        Returns the amount of matches. Prints success/failure to the terminal.
+        """
+
+        filter_prepared = self.prepare_filter(flt)
+
+        try:
+            coll = self.db[collection_name]
+            matches = coll.count_documents(filter_prepared)
+            print(f"There are {matches} entries matching the filter in {collection_name}")
+            return matches
+        except Exception as e:
+            print(f"Existence check failed: {e}")
+            return None
+
     #turn ObjectId to string for JSON serialization
     def stringify_id(self, doc: Dict[str, Any]) -> Dict[str, Any]:
         if "_id" in doc:

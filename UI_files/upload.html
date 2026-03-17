@@ -1,1 +1,42 @@
+<!DOCTYPE html>
+<html>
 
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+
+    <!--CSS Style Link-->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="upload.css">
+
+<body>
+    <header>
+        <!--Navbar-->
+        <nav class="navbar">
+            <ul>
+                <li><img src="resumelogo.png" alt="Logo"></li>
+                <li><a href="/upload.html" id="upload">Upload</a></li>
+                <li><a href="/resumes.html" id="resumes">Resumes</a></li>
+                <li><a href="/login.html" id="logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+<!--Upload Box for Resumes-->
+<div class="upload-box" id="drop-area">
+    <p>Drag & Drop or</p>
+    <button type="button" id="browseBtn">Browse Files</button>
+    <input type="file" id="fileInput" hidden>
+    <p id="fileName"></p>
+</div>
+
+<!--Upload Resume button for processing-->
+<button type="button" class="uploadBtn">Upload and Process</button>
+
+<!--Upload Status-->
+<p class="status">Status: <span id="status">In Progress</span></p>
+
+</body>
+
+</html>

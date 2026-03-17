@@ -1,34 +1,52 @@
-from DB_Management import DBManagement as UserDB
-import pprint
-from bson import ObjectId
+from fastapi import FastAPI
+from DB_Management import DBManagement
+from pydanticSchemes import FetchRequestScheme, InsertEntryScheme, UpdateValueScheme, DeleteEntryScheme, LoginScheme, EntryExistScheme
 
-db = UserDB()
+app = FastAPI()
+db = DBManagement()
 
-#projection = {"lastName": 1, "email": 1, "resumes": 1, "_id": 0}
-#users = db.fetch(projection=projection)
-#pprint.pprint(users)
+#Run: 
+#uvicorn main:app --host 127.0.0.1 --port 8000
+#runs this file as a server for FastAPI
 
-#db.insert_file()
+@app.post("/login")
+async def login(request: LoginScheme):
+    success = db.login_check(username=request.username, password=request.password)
+    return {"success": success}
 
-#db.download_file()
+@app.post("/updateValue")
+async def update_value(request: UpdateValueScheme):
+    modified_count = db.update_value(
+        flt=request.flt,
+        collection_name=request.collection_name,
+        attribute=request.attribute,
+        new_value=request.new_value
+    )
+    return {"modified_count": modified_count}
 
-test = db.insert_entry(Entry={
-        "username": "Timmy_dev",
-        "passwordHash": "$2b$12$MQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6hsxq5BIDO",
-        "locationConfig": ["Chicago, IL"],
-        "expectedSalaryConfig": ["30K-60K", "60K-100K"],
-        "jobTypeConfig": ["PART-time", "intern", "contract"],
-        "industryConfig": ["education", "tech"],
-        "experienceLevelConfig": ["entry-level", "mid-level"],
-        "remoteConfig": ["on-site", "hybrid"],
-        "companySizeConfig": ["201-500", "501-1000"],
-        "firstName": "Marcos",
-        "lastName": "Rivera",
-        "email": "marcos.dev@gmail.com",
-        "phone": "555-456-7890"
-    }, collection_name="Users")
-pprint.pprint(test)
+@app.post("/insertEntry")
+async def insert_entry(request: InsertEntryScheme):
+    inserted_id = db.insert_entry(Entry=request.entry, collection_name=request.collection_name)
+    return {"inserted_id": inserted_id}
 
-#db.update_user_value(flt={"username": None}, attribute="lastName", new_value="Smith")
+@app.post("/fetch")
+async def fetch_users(request: FetchRequestScheme):
+    users = db.fetch(
+        collection_name=request.collection_name,
+        filter=request.filter,
+        projection=request.projection
+    )
+    return {"results": users}
 
-db.close()
+@app.post("/deleteEntry")
+async def delete_entry(request: DeleteEntryScheme):
+    deleted_count = db.delete_entry(
+        flt=request.flt,
+        collection_name=request.collection_name
+    )
+    return {"deleted_count": deleted_count}
+
+@app.post("/entryExist")
+async def entry_exist(request: EntryExistScheme):
+    count = db.entry_exists(collection_name=request.collection_name, flt=request.flt)
+    return count

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, field_validator
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from enum import Enum
 from bson import ObjectId
 
@@ -143,3 +143,29 @@ class JobPostingScheme(BaseModel):
             return [item.lower() if isinstance(item, str) else item for item in v]
         return v
 
+class FetchRequestScheme(BaseModel):
+    collection_name: str
+    filter: Optional[Dict[str, Any]] = None
+    projection: Optional[Dict[str, int]] = None
+
+class InsertEntryScheme(BaseModel):
+    collection_name: str
+    entry: Dict[str, Any]
+
+class UpdateValueScheme(BaseModel):
+    collection_name: str
+    flt: Dict[str, Any]
+    attribute: str
+    new_value: Any
+
+class DeleteEntryScheme(BaseModel):
+    collection_name: str
+    flt: Optional[Dict[str, Any]] = None
+
+class LoginScheme(BaseModel):
+    username: str
+    password: str
+
+class EntryExistScheme(BaseModel):
+    collection_name: str
+    flt: Optional[Dict[str,Any]] = None

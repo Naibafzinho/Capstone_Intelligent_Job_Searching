@@ -12,9 +12,18 @@ class DBManagement:
         self.db = self.client["TestDB"]
 
     def fetch(self, collection_name: str, filter: Optional[Dict[str, Any]] = None, projection: Optional[Dict[str, int]] = None) -> List[Dict[str, Any]]:
-        """Fetch documents using an arbitrary filter and optional projection.
+        """
+        Retrieves documents from a specified collection, with optional filtering and field projection.
+        Returns a list of matched documents with ObjectId fields converted to strings.
 
-        Example: fetch({'userId': 'USR001'}, {'username': 1, 'email': 1})
+        Example:
+            # Fetch only the username and email of a specific user
+            db.fetch(
+                collection_name="Users",
+                filter={"username": "john_doe"},
+                projection={"username": 1, "email": 1}
+            )
+        # Returns: [{"_id": "abc123", "username": "john_doe", "email": "john@example.com"}]
         """
         flt = self.prepare_filter(filter)
         coll = self.db[collection_name]
@@ -22,12 +31,27 @@ class DBManagement:
         return [self.stringify_id(d) for d in docs]
 
     def insert_entry(self, Entry: Dict[str, Any], collection_name: str) -> Optional[str]:
-        """Insert a user document into the users collection.
+        """
+        Inserts a new document into the specified collection after validating it against
+        the collection's Pydantic scheme. Returns the inserted document's ID as a string
+        on success, or None on failure.
 
-        Ensures all fields listed in `UserScheme` exist on the document; missing
-        fields are set to None. Prints upload success/failure to the terminal.
+        Special handling per collection:
+            - "Users":    Rejects duplicate usernames. Automatically hashes the plaintext
+                        password provided under the "passwordHash" key before insertion.
+            - "Resumes":  Rejects insertion if the associated user already has 10 resumes.
 
-        Returns the inserted document id as a string on success, otherwise None.
+        Example:
+            # Insert a new user
+            inserted_id = db.insert_entry(
+                Entry={
+                    "username": "john_doe",
+                    "email": "john@example.com",
+                    "passwordHash": "plaintext_password"  # will be hashed automatically
+                },
+                collection_name="Users"
+            )
+        # Returns: "abc123..." on success, or None on failure
         """
         
         if collection_name == "Resumes":
@@ -47,7 +71,6 @@ class DBManagement:
 
         if (collection_name == "Users"):
             #use username fetch to check for existing user with same username
-
             username = Entry.get("username")
             if username is None:
                 print("Upload failed: username is required for user entries")
@@ -84,10 +107,24 @@ class DBManagement:
             return None        
     
     def update_value(self, flt: Dict[str, Any], attribute: str, new_value: Any, collection_name: str) -> int:
-        """Update `attribute` to `new_value` for documents matching `flt` in the User collection.
+        """
+        Updates a single field on all documents matching the given filter in the specified
+        collection. Validates the new value against the collection's Pydantic scheme before
+        applying the update. Returns the number of modified documents, or 0 on failure.
 
-        - `flt` should be a dict filter (same format accepted by `fetch`).
-        Returns the number of modified documents (int). Prints success/failure to the terminal.
+        Special handling per collection:
+            - "Users":  If the attribute being updated is "passwordHash", the new value
+                        is treated as plaintext and will be hashed automatically before saving.
+
+        Example:
+            # Update the email of a specific user
+            modified_count = db.update_value(
+                flt={"username": "john_doe"},
+                attribute="email",
+                new_value="newemail@example.com",
+                collection_name="Users"
+            )
+        # Returns: 1 if the update was successful, 0 on failure
         """
         
         filter_prepared = self.prepare_filter(flt)
@@ -116,10 +153,19 @@ class DBManagement:
             return 0
         
     def delete_entry(self, flt: Optional[Dict[str, Any]], collection_name: str) -> int:
-        """Delete documents matching `flt` from `collection_name`.
+        """
+        Deletes all documents matching the given filter from the specified collection.
+        Requires a non-empty filter to prevent accidental mass deletion. If no filter
+        is provided, no documents will be deleted. Returns the number of deleted documents,
+        or 0 on failure.
 
-        - `flt` may be None or a dict filter (same format accepted by `fetch`).
-        Returns the number of deleted documents (int). Prints success/failure to the terminal.
+        Example:
+            # Delete a specific user by username
+            deleted_count = db.delete_entry(
+                flt={"username": "john_doe"},
+                collection_name="Users"
+            )
+        # Returns: 1 if the user was found and deleted, 0 on failure
         """
 
         if not flt:
@@ -138,9 +184,18 @@ class DBManagement:
             return 0    
 
     def login_check(self, username: str, password: str) -> bool:
-        """Check if a user with the given username and passwordHash exists in the Users collection.
+        """
+        Verifies a user's credentials against the Users collection. Looks up the user by
+        username and compares the provided plaintext password against the stored hash.
+        Returns True if the credentials are valid, False otherwise.
 
-        Returns True if a matching user is found, otherwise False. Prints success/failure to the terminal.
+        Example:
+            # Check if a user's credentials are valid
+            is_authenticated = db.login_check(
+                username="john_doe",
+                password="plaintext_password"
+            )
+        # Returns: True if credentials match, False if username not found or password is incorrect
         """
         try:
             coll = self.db["Users"]
@@ -157,10 +212,17 @@ class DBManagement:
             return False
 
     def entry_exists(self, flt: Dict[str, Any], collection_name: str) -> Optional[int]:
-        """Check if any document matching `flt` exists in `collection_name`.
+        """
+        Counts the number of documents matching the given filter in the specified collection.
+        Returns the match count as an integer, or None if the check failed.
 
-        - `flt` should be a dict filter (same format accepted by `fetch`).
-        Returns the amount of matches. Prints success/failure to the terminal.
+        Example:
+            # Check how many resumes belong to a specific user
+            match_count = db.entry_exists(
+                flt={"userId": "abc123"},
+                collection_name="Resumes"
+            )
+        # Returns: 2 if two resumes were found, 0 if none exist, None on failure
         """
 
         filter_prepared = self.prepare_filter(flt)
@@ -176,11 +238,14 @@ class DBManagement:
 
     #turn ObjectId to string for JSON serialization
     def stringify_id(self, doc: Dict[str, Any]) -> Dict[str, Any]:
+        #convert the _id field to string if it exists, so that the document can be returned in JSON format
         if "_id" in doc:
             doc["_id"] = str(doc["_id"])
         return doc
     
     def prepare_filter(self, flt: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        #prepare the filter by converting any string representations of ObjectIds to actual ObjectId instances, so that they can be used in MongoDB queries. 
+        #If no filter is provided, return an empty dictionary to match all documents.
         if not flt:
             return {}
         # convert _id string to ObjectId if present
@@ -194,7 +259,7 @@ class DBManagement:
         return out
     
     def get_Scheme(self, collection_name: str):
-        """Return the Pydantic scheme class corresponding to the collection name."""
+        #Return the Pydantic scheme class corresponding to the collection name.
         match collection_name:
             case "Users":
                 return UserScheme
@@ -206,4 +271,5 @@ class DBManagement:
                 raise ValueError(f"No scheme defined for collection: {collection_name}")
 
     def close(self) -> None:
+        #Closes the MongoDB client connection. Should be called when the DBManagement instance is no longer needed to free up resources.
         self.client.close()

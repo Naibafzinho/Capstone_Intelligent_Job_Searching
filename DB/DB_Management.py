@@ -67,7 +67,20 @@ class DBManagement:
                 return None
             if len(docs) >= 10:
                 print(f"Upload failed: User with ID:{userId} already has 10 resumes")
-                return None              
+                return None   
+
+            #check if title already exist for the same user, if so reject the upload
+            title = Entry.get("title")
+            if title is None:
+                print("Upload failed: title is required for resume entries")
+                return None
+            existing_resumes = self.fetch(collection_name="Resumes", filter={"userId": userId, "title": title})
+            if existing_resumes is None:
+                print("Upload failed: could not verify title uniqueness for the user")
+                return None
+            if existing_resumes:
+                print(f"Upload failed: Resume with title '{title}' already exists for user ID:{userId}")
+                return None           
 
         if (collection_name == "Users"):
             #use username fetch to check for existing user with same username

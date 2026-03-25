@@ -1,3 +1,10 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-color: #f4f6f9;
+}
+
+
 /* upload box in upload page */
 .upload-box {
     border: 2px dashed #999;

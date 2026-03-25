@@ -1,0 +1,58 @@
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f6f9;
+}
+
+
+/* Layout */
+.container {
+    padding: 20px;
+}
+
+/* Resume Name */
+.resumeName {
+    margin-bottom: 20px;
+}
+
+.resumeName input {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filters select {
+    padding: 8px;
+    border-radius: 5px;
+}
+
+/* Skills Section */
+.skills {
+    display: flex;
+    gap: 20px;
+}
+
+/* Boxes */
+.skills-box{
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Items */
+.skill-item{
+    padding: 8px;
+    margin: 6px 0;
+    background: #ecf0f1;
+    border-radius: 5px;
+}

@@ -1,50 +1,56 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
 
+    <!--Link to CSS stylesheet-->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="resumes.css">
-</head>
+
 
 <body>
 
-<header>
-    <nav class="navbar">
-        <ul>
-            <li><img src="resumelogo.png" alt="Logo"></li>
-            <li><a href="/upload.html">Upload</a></li>
-            <li><a href="/resumes.html">Resumes</a></li>
-            <li><a href="/login.html">Logout</a></li>
-        </ul>
-    </nav>
-</header>
+    <header>
+        <!--Navbar-->
+        <nav class="navbar">
+            <ul>
+                <li><img src="resumelogo.png" alt="Logo"></li>
+                <li><a href="upload.html">Upload</a></li>
+                <li><a href="resumes.html">Resumes</a></li>
+                <li><a href="login.html">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
 
+    <!--Resume container to hold each resume-->
+    <div class="resumeContainer">
 
-<div class="resumeContainer">
+        <!--Resume box-->
+        <div class="resumeBox">
+            <ul>
+                <li><input type="text" class="resumeTitleInput" value="Resume1"></li>
+                <li><a href="analysis.html">Analysis</a></li>
+                <li><a href="matches.html">Matches</a></li>
+                <li><a href="edit.html">Edit</a></li>
+                <li><button class="deleteBtn">Delete</button></li>
+            </ul>
+        </div>
 
-    <div class="resumeBox">
-        <ul>
-            <li><input type="text" class="resumeTitleInput" value="Resume1"></li>
-            <li><a href="/analysis.html">Analysis</a></li>
-            <li><a href="/matches.html">Matches</a></li>
-            <li><a href="/edit.html">Edit</a></li>
-            <li><button class="deleteBtn">Delete</button></li>
-        </ul>
+        <!--Resume box-->
+        <div class="resumeBox">
+            <ul>
+                <li><input type="text" class="resumeTitleInput" value="Resume2"></li>
+                <li><a href="analysis.html">Analysis</a></li>
+                <li><a href="matches.html">Matches</a></li>
+                <li><a href="edit.html">Edit</a></li>
+                <li><button class="deleteBtn">Delete</button></li>
+            </ul>
+        </div>
+
     </div>
-
-    <div class="resumeBox">
-        <ul>
-            <li><input type="text" class="resumeTitleInput" value="Resume2"></li>
-            <li><a href="/analysis.html">Analysis</a></li>
-            <li><a href="/matches.html">Matches</a></li>
-            <li><a href="/edit.html">Edit</a></li>
-            <li><button class="deleteBtn">Delete</button></li>
-        </ul>
-    </div>
-
-</div>
 
 </body>
 </html>

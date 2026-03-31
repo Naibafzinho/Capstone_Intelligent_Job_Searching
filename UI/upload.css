@@ -1,3 +1,4 @@
+/* Base Styles */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -5,52 +6,61 @@ body {
 }
 
 
-/* upload box in upload page */
+/* Upload Page */
+
+
+/* Dashed drop zone where users drag and drop their resume */
 .upload-box {
-    border: 2px dashed #999;
-    border-radius: 10px;
-    padding: 40px;
-    text-align: center;
-    width: 79%;
-    height: 300px;
-    margin: 50px auto;
-    background-color: #fafafa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .upload-box.dragover {
-    border-color: #007bff;
-    background-color: #f0f8ff;
-  }
-  
-  button {
-    padding: 8px 16px;
-    cursor: pointer;
-  }
+  border: 2px dashed #999;
+  border-radius: 10px;
+  padding: 40px;
+  text-align: center;
+  width: 79%;
+  height: 300px;
+  margin: 50px auto;
+  background-color: #fafafa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
 
-  .uploadBtn {
-    border: 1px full #999;
-    border-radius: 10px;
-    padding: 8px 10px;
-    text-align: center;
-    width: 25%;
-    margin: 50px auto;
-    background-color: #fafafa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Highlight the drop zone when a file is dragged over it */
+.upload-box.dragover {
+  border-color: #007bff;
+  background-color: #f0f8ff;
+}
 
-  }
+/* Base button styles */
+button {
+  padding: 8px 16px;
+  cursor: pointer;
+}
 
-  .status {
+/* Upload submit button */
+.uploadBtn {
+  border: 1px solid #999;
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-align: center;
+  width: 25%;
+  margin: 50px auto;
+  background-color: #fafafa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-  }
+}
 
-/* end of upload page */
+/* Upload button transform */
+.uploadBtn:hover{
+  transform: scale(1.05);
+}
+
+/* Status message shown after upload */
+.status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}

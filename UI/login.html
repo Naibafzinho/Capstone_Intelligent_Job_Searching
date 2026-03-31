@@ -7,30 +7,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 
+    <!--Links external CSS stylesheet-->
     <link rel="stylesheet" href="login.css">
 
 <body>
 
+    <!--Outer wrapper to center the login card on the page-->
     <div class="login-wrapper">
 
+        <!--Logo display-->
         <img src="resumelogo.png" alt="Logo" class="logo">
 
+        <!--Login card for all elements-->
         <div class="login-card">
             <h1>Welcome back</h1>
             <p class="subtitle">Sign in to your account</p>
     
+            <!--Username input field-->
             <div class="field">
                 <label for="username">Username</label>
                 <input type="text" id="username" placeholder="Enter your username" />
             </div>
     
+            <!--Password input field-->
             <div class="field">
                 <label for="password">Password</label>
                 <input type="password" id="password" placeholder="Enter your password" />
             </div>
-    
+            
+            <!--Submit button to sign in-->
             <button type="submit">Sign in</button>
-            <a href="/signup.html" class="forgot">Don't have an account?</a>
+
+            <!--Link to send users to sign-up page-->
+            <a href="signup.html" class="forgot">Don't have an account?</a>
         
         </div>
     

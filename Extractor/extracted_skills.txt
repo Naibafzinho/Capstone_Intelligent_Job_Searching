@@ -1,0 +1,225 @@
+RESUME SKILLS:
+4n6xprt systems stiffcalcs
+ability photopaint
+adexa egps suite
+aestiva purchase order
+allen bradley panelview
+almaris e-learning systems financial accounting tutor
+analyse-it
+analyze
+apache accumulo
+author-it
+blueprint display software
+business continuity software
+ca etrust
+catchlog trading catchlog
+cisco systems ciscoworks
+clustering software
+computer on-line real-time applications language coral 66
+computerized time management systems
+conformance and validation testing software
+credit and risk analysis software
+criterion planners index
+data visualization software
+docker
+dynamic host configuration protocol dhcp
+econometric software limdep
+end-to-end encryption software
+enercom energy depot for business
+extratech machine tools suite
+failure rate data in perspective faradip software
+flexible dynamics modeling software
+geniel genetics igene
+git
+governance, risk, and compliance grc software
+graphical user interface gui design software
+greenplum database
+i-flex solutions reveleus investment performance measurement
+idx systems idxtend
+industrial production manager and stock control software
+infologix healthtrax engine
+instructional software
+integrated decision support netwise enterprise
+intelitek spectracam milling
+intelligent information conversion technologies meritscholar
+intellisys project desktop
+javascript
+lawlogix edge
+microsoft sql server compact
+motion capture software
+multivariate statistical program mvsp software
+mysql
+mzinga on-demand learning suite
+neo4j
+network modeling, mapping, and analysis software
+numpy
+pandas
+postgresql
+predictive toxicology software
+python
+ramesys hospitality
+redberry logistics
+redis
+relational database software
+science educational software
+scikit-learn
+spring boot
+the associated press enps
+unit conversion software
+work time accounting software
+world software corporation worldox
+worldspan go!
+xerceo learn
+xgboost
+
+JOB SKILLS:
+20-20 technologies 20-20 design
+24sevenoffice project
+4n6xprt systems stiffcalcs
+ability photopaint
+aderant expert matter center
+adexa egps suite
+adexa supply chain planning
+ado.net
+advanced chemistry development analytical laboratory
+aestiva purchase order
+airmagnet enterprise
+altia design
+american association of critical care nurses aacn medicopeia
+analyze
+apache accumulo
+asana
+atstaff physician scheduler
+basis bbx visualpro/5
+benefit plan systems corporation the plan administrator
+biodegration flow and transport modeling software
+biztrak business solutions biztrak
+budgeting, forecasting, and planning software
+bytescribe development company wavplayer
+camfit data limited microfit
+capital codeworks menumax
+ccis accountability
+choice job cost
+citectscada reports
+coding database software
+computational modeling software
+computer generated solutions learning management system
+dbase
+encompass software
+extratech machine tools suite
+financial competence
+financial planning presentation software
+fluent flowizard
+foresoft cds cogo
+geometrix data systems training partner
+gracesoft easy innkeeping suite
+graphpad software graphpad prism
+hardware description and verification language
+idea trialpro
+infologix healthtrax engine
+intelitek spectracam milling
+intermediate system to intermediate system is-is
+inventory software
+jaspersoft business intelligence suite
+linkedin
+mean time to failure mttf software
+medipro medisoft clinical
+microsoft office mobile
+microsoft power bi
+microsoft windows
+peoplefluent performance
+plos computational biology
+post once
+programming languages
+psychometric testing software
+python
+qpsmr limited insight
+qualitative analysis software
+qualtrics research suite
+ramesys hospitality
+resource management software
+retain resource planning
+riskmetrics group wealthbench
+search engine optimization seo software
+softrax revenue management
+spreadware business financial analysis
+talend big data integration
+x.25 protocol
+xerceo learn
+
+MATCHED SKILLS:
+4n6xprt systems stiffcalcs
+ability photopaint
+adexa egps suite
+aestiva purchase order
+analyze
+apache accumulo
+extratech machine tools suite
+infologix healthtrax engine
+intelitek spectracam milling
+python
+ramesys hospitality
+xerceo learn
+
+MISSING SKILLS:
+20-20 technologies 20-20 design
+24sevenoffice project
+aderant expert matter center
+adexa supply chain planning
+ado.net
+advanced chemistry development analytical laboratory
+airmagnet enterprise
+altia design
+american association of critical care nurses aacn medicopeia
+asana
+atstaff physician scheduler
+basis bbx visualpro/5
+benefit plan systems corporation the plan administrator
+biodegration flow and transport modeling software
+biztrak business solutions biztrak
+budgeting, forecasting, and planning software
+bytescribe development company wavplayer
+camfit data limited microfit
+capital codeworks menumax
+ccis accountability
+choice job cost
+citectscada reports
+coding database software
+computational modeling software
+computer generated solutions learning management system
+dbase
+encompass software
+financial competence
+financial planning presentation software
+fluent flowizard
+foresoft cds cogo
+geometrix data systems training partner
+gracesoft easy innkeeping suite
+graphpad software graphpad prism
+hardware description and verification language
+idea trialpro
+intermediate system to intermediate system is-is
+inventory software
+jaspersoft business intelligence suite
+linkedin
+mean time to failure mttf software
+medipro medisoft clinical
+microsoft office mobile
+microsoft power bi
+microsoft windows
+peoplefluent performance
+plos computational biology
+post once
+programming languages
+psychometric testing software
+qpsmr limited insight
+qualitative analysis software
+qualtrics research suite
+resource management software
+retain resource planning
+riskmetrics group wealthbench
+search engine optimization seo software
+softrax revenue management
+spreadware business financial analysis
+talend big data integration
+x.25 protocol

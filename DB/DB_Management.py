@@ -2,13 +2,16 @@ from pymongo import MongoClient
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
 from pydanticSchemes import UserScheme, ResumeScheme, JobPostingScheme
+from dotenv import load_dotenv
+import certifi
 import bcrypt
 import os
 
 class DBManagement:
 
     def __init__(self):
-        self.client = MongoClient(os.getenv("MONGODB_URI"))
+        load_dotenv()
+        self.client = MongoClient(os.getenv("MONGODB_URI"), tlsCAFile=certifi.where())
         self.db = self.client["TestDB"]
 
     def fetch(self, collection_name: str, filter: Optional[Dict[str, Any]] = None, projection: Optional[Dict[str, int]] = None) -> List[Dict[str, Any]]:

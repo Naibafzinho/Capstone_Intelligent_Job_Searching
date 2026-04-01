@@ -1,0 +1,44 @@
+About the job
+HYBRID ROLE BASED OUT OF OUR ATLANTA OFFICE
+
+Job Purpose
+
+Our Data Scientist will be responsible for supporting data science initiatives that drive business profitability, increase efficiencies and improve customer experience. This role applies industry-leading analytical methodologies for working with large datasets to extract meaningful business insight and creatively solve business problems.
+
+Job Responsibilities
+
+Design and develop algorithms and models to use against large datasets to create business insights.
+Use predictive modeling to increase and optimize customer experiences and revenue.
+Execute tasks with high levels of efficiency and quality; Make appropriate selection, utilization and interpretation of advanced analytical methodologies.
+Effectively communicate insights and recommendations to both technical and non-technical leaders and business customers/partners.
+Present recommendations in a confident manner in order to influence execution of recommendation; Clearly communicate impacts of recommendations to drive alignment and appropriate implementation.
+Prepare reports, updates and/or presentations related to progress made on a project or solution.
+Effectively develop trust and collaboration with internal customers and cross-functional teams..
+Seek further knowledge on key developments within data science, technical skill sets, and additional data sources.
+Participate in the continuous improvement of data science and analytics by developing replicable solutions (for example, codified data products, project documentation, process flowcharts) to ensure solutions are leveraged for future projects.
+Build and maintain library of reusable algorithms for future use, ensuring developed codes are documented.
+Apply advanced analytics methods and algorithms for identifying trends and providing business solutions.
+Other duties as assigned.
+
+Additional Responsibilities & Qualifications
+
+Knowledgeable in Prescriptive Modeling like Machine Learning, Deep Learning, Recommendation, search or Natural Language Processing (NLP).
+Proficient utilizing statistical techniques to identify key insights that help solve business problems.
+
+Work Experience
+
+1-3 years of related job experience.
+Ability to manage multiple projects, work under pressure, and adapt to sudden changes in the work environment.
+Ability to work quickly and efficiently.
+Excellent verbal, written, people, and diplomacy skills are required.
+Experience in programming language such as Python, R, or VBA is desirable.
+Experience using Microsoft SQL, SSAS, Power Pivot, Power Query or Power BI is preferred.
+Experience utilizing Python or R coding skills for data exploration, statistical analysis, and predictive analysis.
+Experience writing SQL queries (familiar with primary and foreign keys, as well as joins and aggregate functions).
+Proficient with Microsoft Office Suite.
+Strong customer service skills (friendly, courteous and helpful).
+Strong planning and organization skills are required.
+
+Education
+
+Master's Degree Preferred

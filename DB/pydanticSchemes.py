@@ -96,7 +96,6 @@ class ResumeScheme(BaseModel):
     tags: Optional[List[str]] = []
     extractedKeywords: Optional[List[str]] = []
     atsScore: Optional[int] = None
-    jobPostings: Optional[List[ObjectId]] = []
 
     @field_validator(
         'tags', 

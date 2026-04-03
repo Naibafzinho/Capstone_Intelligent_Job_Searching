@@ -254,13 +254,9 @@ class DBManagement:
 
     #turn ObjectId to string for JSON serialization
     def stringify_id(self, doc: Dict[str, Any]) -> Dict[str, Any]:
-        #convert all keys with the ObjectId data type into strings, so that the document can be returned in JSON format
+        #convert the _id field to string if it exists, so that the document can be returned in JSON format
         if "_id" in doc:
             doc["_id"] = str(doc["_id"])
-        if "userId" in doc:
-            doc["userId"] = str(doc["userId"])
-        if "jobPostings" in doc and isinstance(doc["jobPostings"], list):
-            doc["jobPostings"] = [str(jp) for jp in doc["jobPostings"]]
         return doc
     
     def prepare_filter(self, flt: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -270,7 +266,7 @@ class DBManagement:
             return {}
         # convert _id string to ObjectId if present
         out = dict(flt)
-        for key in ("_id", "userId", "jobPostings"):
+        for key in ("_id", "userId"):
             if key in out and isinstance(out[key], str):
                 try:
                     out[key] = ObjectId(out[key])

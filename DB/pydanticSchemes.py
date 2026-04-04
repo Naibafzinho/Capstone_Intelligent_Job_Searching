@@ -54,7 +54,7 @@ class companySize(str, Enum):
 
 class MatchEntry(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    
+
     jobPostingId: ObjectId
     matchScore: int
     matchedKeywords: List[str]
@@ -176,3 +176,9 @@ class LoginScheme(BaseModel):
 class EntryExistScheme(BaseModel):
     collection_name: str
     flt: Optional[Dict[str,Any]] = None
+
+class AddMatchesScheme(BaseModel):
+    resumeId: str
+    jobPostingId: str
+    matchScore: int
+    matchedKeywords: Optional[List[str]] = []

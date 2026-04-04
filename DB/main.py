@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from DB_Management import DBManagement
-from pydanticSchemes import FetchRequestScheme, InsertEntryScheme, UpdateValueScheme, DeleteEntryScheme, LoginScheme, EntryExistScheme
+from pydanticSchemes import FetchRequestScheme, InsertEntryScheme, UpdateValueScheme, DeleteEntryScheme, LoginScheme, EntryExistScheme, AddMatchesScheme
 
 app = FastAPI()
 db = DBManagement()
@@ -50,3 +50,8 @@ async def delete_entry(request: DeleteEntryScheme):
 async def entry_exist(request: EntryExistScheme):
     count = db.entry_exists(collection_name=request.collection_name, flt=request.flt)
     return count
+
+@app.post("/addMatches")
+async def add_matches(request: AddMatchesScheme):
+    success = db.add_matches(resumeId=request.resumeId, jobPostingId=request.jobPostingId, matchScore=request.matchScore, matchedKeywords=request.matchedKeywords)
+    return {"success": success}

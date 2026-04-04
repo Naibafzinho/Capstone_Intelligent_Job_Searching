@@ -52,6 +52,12 @@ class companySize(str, Enum):
     FIVE_THOUSAND_ONE_TO_10000 = "5001-10000"
     TEN_THOUSAND_PLUS = "10000+"
 
+class MatchEntry(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    jobPostingId: ObjectId
+    matchScore: int
+    matchedKeywords: List[str]
 
 class UserScheme(BaseModel):
     username: str
@@ -96,6 +102,7 @@ class ResumeScheme(BaseModel):
     tags: Optional[List[str]] = []
     extractedKeywords: Optional[List[str]] = []
     atsScore: Optional[int] = None
+    matches: Optional[List[MatchEntry]] = []
 
     @field_validator(
         'tags', 

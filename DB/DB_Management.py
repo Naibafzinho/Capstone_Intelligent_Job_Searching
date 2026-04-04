@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
-from pydanticSchemes import UserScheme, ResumeScheme, JobPostingScheme
+from pydanticSchemes import MatchEntry, UserScheme, ResumeScheme, JobPostingScheme
 from dotenv import load_dotenv
 import certifi
 import bcrypt
@@ -72,17 +72,17 @@ class DBManagement:
                 print(f"Upload failed: User with ID:{userId} already has 10 resumes")
                 return None   
 
-            #check if title already exist for the same user, if so reject the upload
-            title = Entry.get("title")
-            if title is None:
-                print("Upload failed: title is required for resume entries")
+            #check if filename already exist for the same user, if so reject the upload
+            filename = Entry.get("filename")
+            if filename is None:
+                print("Upload failed: filename is required for resume entries")
                 return None
-            existing_resumes = self.fetch(collection_name="Resumes", filter={"userId": userId, "title": title})
+            existing_resumes = self.fetch(collection_name="Resumes", filter={"userId": userId, "filename": filename})
             if existing_resumes is None:
-                print("Upload failed: could not verify title uniqueness for the user")
+                print("Upload failed: could not verify filename uniqueness for the user")
                 return None
             if existing_resumes:
-                print(f"Upload failed: Resume with title '{title}' already exists for user ID:{userId}")
+                print(f"Upload failed: Resume with filename '{filename}' already exists for user ID:{userId}")
                 return None           
 
         if (collection_name == "Users"):
@@ -251,6 +251,57 @@ class DBManagement:
         except Exception as e:
             print(f"Existence check failed: {e}")
             return None
+        
+    def add_matches(self, resumeId: str, jobPostingId: str, matchScore: int, matchedKeywords: List[str]) -> bool:
+        """
+        Adds a match entry to a resume's matches array, keeping only the top 10 highest scoring matches.
+        Validates the match entry against the MatchEntry scheme before insertion.
+        Returns True on success, False on failure.
+
+        Example:
+            # Add a match entry to a resume
+            success = db.add_matches(
+                resumeId="abc123",
+                jobPostingId="xyz789",
+                matchScore=85,
+                matchedKeywords=["python", "mongodb", "fastapi"]
+            )
+        # Returns: True if the match entry was added successfully, False on failure
+        """
+        # validate match entry
+        try:
+            match_entry = MatchEntry(
+                jobPostingId=ObjectId(jobPostingId),
+                matchScore=matchScore,
+                matchedKeywords=matchedKeywords
+            ).model_dump()
+        except Exception as e:
+            print(f"Validation failed: {e}")
+            return False
+
+        try:
+            coll = self.db["Resumes"]
+            resume = coll.find_one({"_id": ObjectId(resumeId)}, {"matches": 1})
+            if resume is None:
+                print(f"Resume {resumeId} not found")
+                return False
+
+            matches = resume.get("matches", [])
+            matches.append(match_entry)
+
+            # keep only top 10 by score
+            matches = sorted(matches, key=lambda x: x["matchScore"], reverse=True)[:10]
+
+            res = coll.update_one({"_id": ObjectId(resumeId)}, {"$set": {"matches": matches}})
+            if res.modified_count == 1:
+                print(f"Match added successfully to resume {resumeId}")
+                return True
+            else:
+                print(f"Failed to add match to resume {resumeId}")
+                return False
+        except Exception as e:
+            print(f"Failed to add match: {e}")
+            return False
 
     #turn ObjectId to string for JSON serialization
     def stringify_id(self, doc: Dict[str, Any]) -> Dict[str, Any]:

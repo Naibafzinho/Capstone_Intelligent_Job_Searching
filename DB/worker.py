@@ -10,6 +10,8 @@ client = redis.Redis(host='localhost', port=6379, db=0)
 queue_name = "db_operations"
 dead_letter_queue = "db_operations_failed"
 db_healthy = True
+MAX_RETRIES = 3
+poison_queue = "db_operations_poison"
 
 def check_db_health() -> bool:
     """
@@ -76,9 +78,20 @@ def drain_dead_letter_queue():
             # if False it was a permanent failure, already discarded
         except TransientDBError:
             # DB went down again mid-drain, put message back and stop
-            client.rpush(dead_letter_queue, message)
-            print("DB went down during drain, stopping")
-            return
+            print("Transient error during dead letter queue processing")
+            handle_retry(json.loads(message))
+            continue
+
+def handle_retry(message_data: dict):
+    retries = message_data.get("retries", 0) + 1
+    message_data["retries"] = retries
+
+    if retries > MAX_RETRIES:
+        print(f"Message exceeded max retries ({MAX_RETRIES}), moving to poison queue")
+        client.rpush(poison_queue, json.dumps(message_data))
+    else:
+        print(f"Retrying message ({retries}/{MAX_RETRIES})")
+        client.rpush(dead_letter_queue, json.dumps(message_data))
 
 # check dead letter queue on startup
 print("Worker started, checking dead letter queue...")
@@ -109,5 +122,6 @@ while True:
                 pass  # permanent failure, already discarded
         except TransientDBError as e:
             print(f"DB went down: {e}")
-            client.rpush(dead_letter_queue, message)
+            data = json.loads(message)
+            handle_retry(data)
             db_healthy = False

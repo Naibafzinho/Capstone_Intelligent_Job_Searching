@@ -2,3 +2,5 @@ venv/
 .venv/
 __pycache__/
 .env
+WebServer/bin
+WebServer/obj

@@ -8,6 +8,7 @@
 </head>
 
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="matches.css">
 <body>
 
     <header>
@@ -21,6 +22,80 @@
             </ul>
         </nav>
     </header>
+
+
+    <main class="page-content">
+
+        <div class="job-card">
+            
+            <!--Company and job title-->
+            <div class="job-top">
+            <div class="company-logo">PNC</div>
+            <div class="job-title-block">
+              <h1 class="job-title">Senior Software Engineer</h1>
+              <p class="job-company">
+                <a href="#">PNC</a> &nbsp;·&nbsp; Posted 2 days ago on LinkedIn
+              </p>
+            </div>
+
+            <!--Match score percentage-->
+            <div class="match-score">
+              <svg viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="24" fill="none" stroke="#e0e0e0" stroke-width="5"/>
+                <circle cx="30" cy="30" r="24" fill="none" stroke="#1a6e35" stroke-width="5"
+                  stroke-dasharray="150.8" stroke-dashoffset="30.16"
+                  stroke-linecap="round" transform="rotate(-90 30 30)"/>
+                <text x="30" y="35" text-anchor="middle" font-size="13" font-weight="bold" fill="#111" font-family="Arial">80%</text>
+              </svg>
+              <span class="match-score-label">match</span>
+            </div>
+          </div>
+    
+
+          <!--Tags for location, salary, industry, etc-->
+          <div class="tags">
+            <span class="tag tag-location">📍 Pittsburgh, PA</span>
+            <span class="tag tag-type">Full-time</span>
+            <span class="tag tag-remote">Hybrid</span>
+            <span class="tag tag-industry">Technology</span>
+            <span class="tag tag-salary">$130k – $160k / yr</span>
+          </div>
+    
+          <hr class="divider">
+    
+          <!--Job description-->
+          <p class="section-label">About the role</p>
+          <p class="job-description">
+            At PNC, our people are our greatest differentiator and competitive advantage in the markets we serve. We are all united in delivering the best experience for our customers. We work together each day to foster an inclusive workplace culture where all of our employees feel respected, valued and have an opportunity to contribute to the company’s success. As a Senior Angular Developer within PNC's Lending Tech organization, you will be based in Dallas, TX, Pittsburgh, PA, Strongsville, OH or Birmingham, AL.
+
+            Senior Angular (or equivalent front‑end) Developer to support our upcoming initiatives. The ideal candidate should have extensive experience building scalable, high‑performance web applications and be comfortable driving technical decisions within a modern front‑end architecture.  
+          </p>
+    
+          <hr class="divider">
+    
+          <!--skills from job posting-->
+          <p class="section-label">Skills</p>
+          <p class="skills-note">Skills highlighted in orange are gaps based on your resume</p>
+          <div class="skills">
+            <span class="skill">Figma</span>
+            <span class="skill">Design systems</span>
+            <span class="skill">User research</span>
+            <span class="skill">Prototyping</span>
+            <span class="skill">Mobile (iOS / Android)</span>
+            <span class="skill skill-missing">Accessibility (WCAG)</span>
+            <span class="skill skill-missing">Data visualization</span>
+          </div>
+    
+          <div class="job-actions">
+            <button class="btn btn-secondary">Save job</button>
+            <button class="btn btn-secondary">View original posting</button>
+          </div>
+    
+        </div>
+    </main>
+
+
+<!--Title, company, location, date posted and where it was posted, fulltime/parttime, salary, remote/hybrid/inperson, description, industry, match score, url, skills missing-->
 
 </body>
 

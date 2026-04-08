@@ -1,0 +1,36 @@
+@page "/upload"
+
+<PageTitle>Upload Resume</PageTitle>
+
+<div class="upload-wrapper">
+
+	<header>
+		<Navbar />
+	</header>
+
+	<!--Upload Box for Resumes-->
+	<div class="upload-box" id="drop-area">
+		<p>Drag & Drop or</p>
+		<button type="button" id="browseBtn" @onclick=BrowseFiles>Browse Files</button>
+		<input type="file" id="fileInput" hidden>
+		<p id="fileName"></p>
+	</div>
+
+	<!--Upload Resume button for processing-->
+	<button type="button" class="uploadBtn" @onclick=UploadResume>Upload and Process</button>
+
+	<!--Upload Status-->
+	<p class="status">Status: <span id="status">In Progress</span></p>
+
+</div>
+
+@code {
+	private void BrowseFiles() {
+		// FIRST: Check if builtin HTML file upload functionality?
+		// TODO: Open file upload popup window (filter to valid filetypes), store in local variable(?).
+	}
+
+	private void UploadResume() {
+		// TODO: Send resume to preprocessing, update status (rememer to use InteractiveServer rendermode).
+	}
+}

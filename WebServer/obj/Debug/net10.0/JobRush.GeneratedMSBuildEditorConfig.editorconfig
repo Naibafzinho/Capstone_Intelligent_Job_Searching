@@ -1,0 +1,103 @@
+is_global = true
+build_property.TargetFramework = net10.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v10.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = JobRush
+build_property.RootNamespace = JobRush
+build_property.ProjectDir = c:\Users\BoomDaddy\Documents\School\RMU\Eight (2026.1)\CSCI 4942\Major Project (JobRush)\JobRush\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 9.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = c:\Users\BoomDaddy\Documents\School\RMU\Eight (2026.1)\CSCI 4942\Major Project (JobRush)\JobRush
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 10.0
+build_property.EnableCodeStyleSeverity = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/App.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Analysis.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbmFseXNpcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Counter.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3VudGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Error.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Home.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xIb21lLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Matches.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xNYXRjaGVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/NotFound.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Weather.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXZWF0aGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Subcomponents/Navbar.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTdWJjb21wb25lbnRzXE5hdmJhci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xfSW1wb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTWFpbkxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-p1rbv0b05i
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2TWVudS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-a2zknodlka
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Layout/ReconnectModal.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcUmVjb25uZWN0TW9kYWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-dttd28l02g
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Edit.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFZGl0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-2c5geat95r
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-glrys8qyh7
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Resumes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZXN1bWVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-zc4qu27a39
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Signup.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTaWdudXAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-bfl123wd5y
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Pages/Upload.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVcGxvYWQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-5jasfbq4sx
+
+[c:/Users/BoomDaddy/Documents/School/RMU/Eight (2026.1)/CSCI 4942/Major Project (JobRush)/JobRush/Components/Subcomponents/ResumeBox.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTdWJjb21wb25lbnRzXFJlc3VtZUJveC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-v1bcdyrabd

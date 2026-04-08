@@ -1,0 +1,42 @@
+@page "/signup"
+
+<PageTitle>Signup</PageTitle>
+
+<!--Outer wrapper to center the signup card on the page-->
+<div class="login-wrapper">
+		
+	<!--Logo display-->
+	<img src="resumelogo.png" alt="Logo" class="logo">
+
+	<!--Login card for all elements-->
+	<div class="login-card">
+		<h1>Welcome</h1>
+		<p class="subtitle">Create your account</p>
+
+		<!--Email input field-->
+		<div class="field">
+			<label for="email">Email</label>
+			<input type="text" id="email" placeholder="Enter your email" />
+		</div>
+
+		<!--Username input field-->
+		<div class="field">
+			<label for="username">Username</label>
+			<input type="text" id="username" placeholder="Enter your username" />
+		</div>
+
+		<!--Password input field-->
+		<div class="field">
+			<label for="password">Password</label>
+			<input type="password" id="password" placeholder="Enter your password" />
+		</div>
+
+		<!--Submit button to sign up user-->
+		<button type="submit">Sign up</button>
+
+		<!--Link to send user to login page-->
+		<a href="/login" class="forgot">Already have an account?</a>
+	
+	</div>
+
+</div>

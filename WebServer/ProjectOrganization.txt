@@ -1,0 +1,20 @@
+This file provides a summary of this project's file structure.
+
+JobRush
+ ├─ Program.cs: This is the program entry point. No edits are likely needed here.
+ ├─ [Other Files]: Configuration files, don't worry about these.
+ ├─ Properties:
+ │   └─ launchSettings.json: Debugger configuration file.
+ ├─ wwwroot:
+ │   ├─ app.css: Global CSS that applies to all site pages.
+ │   ├─ favicon.png: The icon to display on the browser tab.
+ │   └─ [Put other assets here such as images.]
+ └─ Components:
+     ├─ Layout:
+     ├─ Pages: Add new pages here.
+     │   ├─ NotFound.razor: Builtin redirect page for invalid URLs.
+     │   ├─ Error.razor: Builtin error page.
+     │   ├─ Counter.razor: Simple demo page showing how to add C# code to pages.
+     │   └─ Weather.razor: Another demo page demonstrating dynamic loading.
+     ├─ Subcomponents: Folder for non-page components that can be used in pages. (Such as the Navbar.)
+     └─ App.razor: The main HTML file served to browsers. Everything else is rendered into this template.

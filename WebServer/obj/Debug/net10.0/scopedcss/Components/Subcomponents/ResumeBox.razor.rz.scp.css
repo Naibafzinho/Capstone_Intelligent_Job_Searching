@@ -1,0 +1,66 @@
+/* Resume Box */
+
+/* Individual resume card */
+.resumeBox[b-v1bcdyrabd] {
+	width: 95%;
+	max-width: 1000px;
+	background-color: #007bff;
+	padding: 15px;
+	margin: 0 auto;
+	border-radius: 10px;
+}
+
+/* Horizontal row of resume actions inside each card */
+.resumeBox ul[b-v1bcdyrabd] {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	gap: 10px;
+}
+
+/* Each action item aligned centrally */
+.resumeBox li[b-v1bcdyrabd] {
+	display: flex;
+	align-items: center;
+}
+
+/* Resume title input */
+
+/* Editable resume name field pushed to the left */
+.resumeTitleInput[b-v1bcdyrabd] {
+	margin-right: auto;
+	font-weight: bold;
+	background-color: white;
+	padding: 8px 14px;
+	border-radius: 6px;
+	border: none;
+}
+
+/* Shared styles for all action links and buttons */
+.resumeBox a[b-v1bcdyrabd],
+.resumeBox button[b-v1bcdyrabd] {
+	font-size: 16px;
+	color: black;
+	background-color: white;
+	padding: 8px 14px;
+	border-radius: 6px;
+	text-decoration: none;
+	border: none;
+	cursor: pointer;
+	transition: 0.2s ease;
+}
+
+/* Slight scale-up on hover */
+.resumeBox a:hover[b-v1bcdyrabd],
+.resumeBox button:hover[b-v1bcdyrabd] {
+	transform: scale(1.05);
+}
+
+/* Delete button stands out in red */
+.deleteBtn[b-v1bcdyrabd] {
+	background-color: #ff4d4d;
+	color: white;
+}

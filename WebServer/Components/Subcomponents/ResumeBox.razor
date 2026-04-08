@@ -1,0 +1,21 @@
+<div class="resumeBox">
+	<ul>
+		<li><input type="text" class="resumeTitleInput" value=@Name></li>
+		<li><a href="/analysis">Analysis</a></li>
+		<li><a href="/matches">Matches</a></li>
+		<li><a href="/edit">Edit</a></li>
+		<li><button class="deleteBtn" @onclick=DeleteResume>Delete</button></li>
+	</ul>
+</div>
+
+@code {
+	/// <summary>
+	/// The display name for this resume.
+	/// </summary>
+	[Parameter]
+	public required string Name { get; set; }
+	
+	private void DeleteResume() {
+		// TODO: Delete this component's associated resume. (After confirmation popup.)
+	}
+}

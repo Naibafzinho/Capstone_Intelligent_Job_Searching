@@ -1,0 +1,54 @@
+@page "/login"
+@rendermode InteractiveServer
+
+<PageTitle>Login</PageTitle>
+
+<!--Outer wrapper to center the login card on the page-->
+<div class="login-wrapper">
+
+	<!--Logo display-->
+	<img src="resumelogo.png" alt="Logo" class="logo">
+
+	<!--Login card for all elements-->
+	<div class="login-card">
+		<h1>Welcome back</h1>
+		<p class="subtitle">Sign in to your account</p>
+
+		<form @onsubmit=LoginAttempt>
+			<!--Username input field-->
+			<div class="field">
+				<label for="username">Username</label>
+				<input type="text" id="username" @bind-value=username placeholder="Enter your username" />
+			</div>
+
+			<!--Password input field-->
+			<div class="field">
+				<label for="password">Password</label>
+				<input type="password" id="password" @bind-value=password placeholder="Enter your password" />
+			</div>
+		
+			<!--Submit button to sign in-->
+			<button type="submit">Sign in</button>
+
+			<!--Link to send users to sign-up page-->
+			<a href="/signup" class="forgot">Don't have an account?</a>
+		</form>
+
+	</div>
+
+</div>
+
+@code {
+	/// <summary>
+	/// The username most recently entered by the user.
+	/// </summary>
+	private string username = "";
+	/// <summary>
+	/// The password most recently entered by the user.
+	/// </summary>
+	private string password = "";
+
+	private void LoginAttempt() {
+		// TODO: validate username/password, login or display error.
+	}
+}

@@ -1,0 +1,78 @@
+@page "/edit"
+
+<PageTitle>Edit</PageTitle>
+
+<div class="edit-wrapper">
+
+	<header>
+		<Navbar />
+	</header>
+
+	<div class="container">
+
+		<!-- Resume Name -->
+		<div class="resumeName">
+			<label>Resume Name:</label>
+			<input type="text" id="resumeTitle" value="Resume1">
+
+		</div>
+
+		<!-- Filters -->
+		<div class="filters">
+			<h3>Set Filters</h3>
+
+			<select id="location">
+				<option value="">Location</option>
+				<option value="<10 miles">&lt; 10 miles</option>
+				<option value="<25 miles">&lt; 25 miles</option>
+				<option value="<50 miles">&lt; 50 miles</option>
+				<option value="<100 miles">&lt; 100 miles</option>
+			</select>
+
+			<select id="salary">
+				<option value="">Salary</option>
+				<option value="<20000">&lt; $20,000</option>
+				<option value="20000-50000">$20,000-$50,000</option>
+				<option value="$50,000-$80,000">$50,000-$80,000</option>
+				<option value=">$80,000">>$80,000</option>
+			</select>
+
+			<select id="experience">
+				<option value="">Experience</option>
+				<option value="intern">Internship</option>
+				<option value="entry">Entry-Level</option>
+				<option value="<25 miles">Mid-Level</option>
+				<option value="<50 miles">Senior Level</option>
+			</select>
+
+			<button @onclick=SaveAll>Save All</button>
+		</div>
+
+		<!-- Skills Section -->
+		<div class="skills">
+
+			<!-- Extracted Skills -->
+			<div class="skills-box">
+				<h2>Skills Extracted</h2>
+
+				<input type="text" id="skillInput" placeholder="Add skill...">
+				<button @onclick=AddSkill>Add</button>
+
+				<div id="skillsList"></div>
+			</div>
+
+		</div>
+
+	</div>
+
+</div>
+
+@code {
+	private void SaveAll() {
+		// TODO: Save selected filters (and resume name?) to DB.
+	}
+
+	private void AddSkill() {
+		// TODO: Add skill in skills box to DB.
+	}
+}

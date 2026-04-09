@@ -69,10 +69,10 @@ class UserScheme(BaseModel):
     experienceLevelConfig: Optional[List[experienceLevel]] = []
     remoteConfig: Optional[List[remote]] = []
     companySizeConfig: Optional[List[companySize]] = []
-    firstName: Optional[str] = None
-    lastName: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
+    firstName: Optional[str] = ""
+    lastName: Optional[str] = ""
+    email: Optional[str] = ""
+    phone: Optional[str] = ""
 
     @field_validator(
         'locationConfig',
@@ -101,7 +101,7 @@ class ResumeScheme(BaseModel):
     isActive: bool
     tags: Optional[List[str]] = []
     extractedKeywords: Optional[List[str]] = []
-    atsScore: Optional[int] = None
+    atsScore: Optional[int] = ""
     matches: Optional[List[MatchEntry]] = []
 
     @field_validator(
@@ -117,18 +117,18 @@ class ResumeScheme(BaseModel):
 
 class JobPostingScheme(BaseModel):
     title: str
-    datePosted: Optional[str] = None
+    datePosted: Optional[str] = ""
     dateExtracted: str
-    dateExpiring: Optional[str] = None
+    dateExpiring: Optional[str] = ""
     domain: str
-    company: Optional[str] = None
+    company: Optional[str] = ""
     locationC: Optional[List[str]] = []
-    salaryRangeC: Optional[List[expectedSalary]] = None
+    salaryRangeC: Optional[List[expectedSalary]] = ""
     jobTypeC: Optional[List[JobType]] = []
     industryC: Optional[List[industry]] = []
     experienceLevelC: Optional[List[experienceLevel]] = []
     remoteC: Optional[List[remote]] = []
-    companySizeC: Optional[companySize] = None
+    companySizeC: Optional[companySize] = ""
     text: str
     url: str
     keywords: Optional[List[str]] = []

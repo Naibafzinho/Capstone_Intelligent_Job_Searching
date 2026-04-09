@@ -300,6 +300,11 @@ class DBManagement:
                 raise PermanentDBError(f"Resume {resumeId} not found")
 
             matches = resume.get("matches", [])
+
+            # check if jobPostingId already exists
+            if any(str(m["jobPostingId"]) == jobPostingId for m in matches):
+                raise PermanentDBError(f"Job posting {jobPostingId} already matched to resume {resumeId}")
+
             matches.append(match_entry)
 
             # keep only top 10 by score

@@ -21,28 +21,28 @@
 		<div class="filters">
 			<h3>Set Filters</h3>
 
-			<select id="location">
-				<option value="">Location</option>
-				<option value="<10 miles">&lt; 10 miles</option>
-				<option value="<25 miles">&lt; 25 miles</option>
-				<option value="<50 miles">&lt; 50 miles</option>
-				<option value="<100 miles">&lt; 100 miles</option>
+			<select id="location" @bind=selectedLocation>
+				<option value="">Filter Location</option>
+				<option value="Sub10Miles">&lt;10 miles</option>
+				<option value="Sub25Miles">&lt;25 miles</option>
+				<option value="Sub50Miles">&lt;50 miles</option>
+				<option value="Sub100Miles">&lt;100 miles</option>
 			</select>
 
-			<select id="salary">
-				<option value="">Salary</option>
-				<option value="<20000">&lt; $20,000</option>
-				<option value="20000-50000">$20,000-$50,000</option>
-				<option value="$50,000-$80,000">$50,000-$80,000</option>
-				<option value=">$80,000">>$80,000</option>
+			<select id="salary" @bind=selectedSalary>
+				<option value="">Filter Salary</option>
+				<option value="Sub20K">&lt;$20,000</option>
+				<option value="From20KTo50K">$20,000-$50,000</option>
+				<option value="From50KTo80K">$50,000-$80,000</option>
+				<option value="Over80K">>$80,000</option>
 			</select>
 
-			<select id="experience">
-				<option value="">Experience</option>
-				<option value="intern">Internship</option>
-				<option value="entry">Entry-Level</option>
-				<option value="<25 miles">Mid-Level</option>
-				<option value="<50 miles">Senior Level</option>
+			<select id="experience" @bind=selectedExperience>
+				<option value="">Filter Experience</option>
+				<option value="Intern">Internship</option>
+				<option value="Entry">Entry-Level</option>
+				<option value="MidLevel">Mid-Level</option>
+				<option value="Senior">Senior Level</option>
 			</select>
 
 			<button @onclick=SaveAll>Save All</button>
@@ -68,6 +68,19 @@
 </div>
 
 @code {
+	/// <summary>
+	/// The location option currently selected by the user (null if no selection).
+	/// </summary>
+	private Location? selectedLocation;
+	/// <summary>
+	/// The salary option currently selected by the user (null if no selection).
+	/// </summary>
+	private Salary? selectedSalary;
+	/// <summary>
+	/// The experience option currently selected by the user (null if no selection).
+	/// </summary>
+	private Experience? selectedExperience;
+	
 	private void SaveAll() {
 		// TODO: Save selected filters (and resume name?) to DB.
 	}
@@ -75,4 +88,8 @@
 	private void AddSkill() {
 		// TODO: Add skill in skills box to DB.
 	}
+
+	private enum Location { Sub10Miles, Sub25Miles, Sub50Miles, Sub100Miles }
+	private enum Salary { Sub20K, From20KTo50K, From50KTo80K, Over80K }
+	private enum Experience { Intern, Entry, MidLevel, Senior }
 }

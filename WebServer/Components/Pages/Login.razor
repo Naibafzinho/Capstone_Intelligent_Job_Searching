@@ -1,5 +1,4 @@
 @page "/login"
-@rendermode InteractiveServer
 
 <PageTitle>Login</PageTitle>
 
@@ -29,10 +28,10 @@
 		
 			<!--Submit button to sign in-->
 			<button type="submit">Sign in</button>
-
-			<!--Link to send users to sign-up page-->
-			<a href="/signup" class="forgot">Don't have an account?</a>
 		</form>
+
+		<!--Link to send users to sign-up page-->
+		<a href="/signup" class="forgot">Don't have an account?</a>
 
 	</div>
 
@@ -40,15 +39,15 @@
 
 @code {
 	/// <summary>
-	/// The username most recently entered by the user.
+	/// The username currently typed by the user.
 	/// </summary>
 	private string username = "";
 	/// <summary>
-	/// The password most recently entered by the user.
+	/// The password currently typed by the user.
 	/// </summary>
 	private string password = "";
 
 	private void LoginAttempt() {
-		// TODO: validate username/password, login or display error.
+		// TODO: Validate username/password, login or display error.
 	}
 }

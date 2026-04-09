@@ -12,7 +12,7 @@ db = UserDB()
 
 #db.download_file()
 
-test = db.add_matches(resumeId="69d18b202e2fd7551366436d", jobPostingId="69b75ce6190bf80afef9f0d3", matchScore=85, matchedKeywords=["python", "mongodb", "fastapi"])
+test = db.fetch(collection_name= "Resumes",filter={"filename": "resumeMatchTest.pdf"}, projection= {"_id": 0, "data": 1, "atsScore": 1})
 pprint.pprint(test)
 
 #db.update_user_value(flt={"username": None}, attribute="lastName", new_value="Smith")

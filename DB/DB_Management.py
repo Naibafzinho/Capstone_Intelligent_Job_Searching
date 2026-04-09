@@ -317,11 +317,19 @@ class DBManagement:
         except Exception as e:
             raise TransientDBError(str(e))
 
-    #turn ObjectId to string for JSON serialization
     def stringify_id(self, doc: Dict[str, Any]) -> Dict[str, Any]:
-        #convert the _id field to string if it exists, so that the document can be returned in JSON format
-        if "_id" in doc:
-            doc["_id"] = str(doc["_id"])
+        for key, value in doc.items():
+            if isinstance(value, ObjectId):
+                doc[key] = str(value)
+            elif isinstance(value, dict):
+                doc[key] = self.stringify_id(value)
+            elif isinstance(value, list):
+                doc[key] = [
+                    self.stringify_id(i) if isinstance(i, dict)
+                    else str(i) if isinstance(i, ObjectId)
+                    else i
+                    for i in value
+                ]
         return doc
     
     def prepare_filter(self, flt: Optional[Dict[str, Any]]) -> Dict[str, Any]:

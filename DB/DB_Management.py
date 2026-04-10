@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
-from pydantic import create_model
+from pydantic import ValidationError, create_model
 from pydanticSchemes import MatchEntry, UserScheme, ResumeScheme, JobPostingScheme
 from dotenv import load_dotenv
 import certifi
@@ -171,6 +171,9 @@ class DBManagement:
             new_value = validation.model_dump()[attribute]
         except PermanentDBError:
             raise
+        except ValidationError as e:
+            print(f"Validation failed: {e}")
+            raise PermanentDBError(str(e))
         except Exception as e:
             raise TransientDBError(str(e))
             

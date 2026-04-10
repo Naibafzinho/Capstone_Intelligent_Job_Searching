@@ -1,6 +1,7 @@
 import redis
 import json
 import time
+import signal
 from DB_Management import DBManagement, TransientDBError, PermanentDBError
 
 #run: python worker.py
@@ -102,7 +103,18 @@ except TransientDBError:
     db_healthy = False
 
 print("Listening for new messages...")
-while True:
+
+running = True
+
+def shutdown(sig, frame):
+    global running
+    print("Shutting down worker...")
+    running = False
+
+signal.signal(signal.SIGINT, shutdown)
+signal.signal(signal.SIGTERM, shutdown)
+
+while running:
     if not db_healthy:
         print("DB is down, checking health...")
         db_healthy = check_db_health()
@@ -112,6 +124,9 @@ while True:
         else:
             time.sleep(3)  # wait before checking again
         continue
+
+    if client.llen(dead_letter_queue) > 0:
+        drain_dead_letter_queue()  # check for any failed messages before processing new ones
 
     # DB is healthy, process normally
     result = client.blpop(queue_name, timeout=5)
@@ -125,3 +140,7 @@ while True:
             data = json.loads(message)
             handle_retry(data)
             db_healthy = False
+
+db.close()
+client.close()
+print("Worker stopped.")

@@ -1,4 +1,7 @@
 @page "/signup"
+@rendermode InteractiveServer
+@inject NavigationManager navigationManager
+@inject SessionManager sessionManager
 
 <PageTitle>Signup</PageTitle>
 
@@ -31,6 +34,8 @@
 				<input type="password" id="password" @bind-value=password placeholder="Enter your password" />
 			</div>
 
+			<span class="errortext">@errorMessage</span>
+
 			<!--Submit button to sign up user-->
 			<button type="submit">Sign up</button>
 		</form>
@@ -55,8 +60,24 @@
 	/// The password currently typed by the user.
 	/// </summary>
 	private string password = "";
+	/// <summary>
+	/// The currently displayed error message. Blank for no error.
+	/// </summary>
+	private string errorMessage = "";
 
 	private void SignupAttempt() {
-		// TODO: Validate signup info, add new account to DB or display error.
+		bool success = sessionManager.AttemptSignup(email, username, password);
+		if (success) {
+			navigationManager.NavigateTo("/");
+		} else {
+			errorMessage = "Username already in use. Please try another username.";
+		}
+	}
+
+	// Redirect to home page if authenticated.
+	protected override void OnInitialized()	{
+		if (sessionManager.IsAuthenticated()) {
+			navigationManager.NavigateTo("/");
+		}
 	}
 }

@@ -121,3 +121,7 @@ h1:focus {
 }
 
 /* End of navbar */
+
+.errortext {
+	color: #CC2533;
+}

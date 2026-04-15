@@ -1,4 +1,7 @@
 @page "/login"
+@rendermode InteractiveServer
+@inject NavigationManager navigationManager
+@inject SessionManager sessionManager
 
 <PageTitle>Login</PageTitle>
 
@@ -25,6 +28,8 @@
 				<label for="password">Password</label>
 				<input type="password" id="password" @bind-value=password placeholder="Enter your password" />
 			</div>
+
+			<span class="errortext">@errorMessage</span>
 		
 			<!--Submit button to sign in-->
 			<button type="submit">Sign in</button>
@@ -46,8 +51,24 @@
 	/// The password currently typed by the user.
 	/// </summary>
 	private string password = "";
+	/// <summary>
+	/// The currently displayed error message. Blank for no error.
+	/// </summary>
+	private string errorMessage = "";
 
-	private void LoginAttempt() {
-		// TODO: Validate username/password, login or display error.
+	private void LoginAttempt()	{
+		bool success = sessionManager.AttemptLogin(username, password);
+		if (success) {
+			navigationManager.NavigateTo("/upload");
+		} else {
+			errorMessage = "Invalid username/password. Please try again.";
+		}
+	}
+
+	// Redirect to home page if authenticated.
+	protected override void OnInitialized()	{
+		if (sessionManager.IsAuthenticated()) {
+			navigationManager.NavigateTo("/");
+		}
 	}
 }

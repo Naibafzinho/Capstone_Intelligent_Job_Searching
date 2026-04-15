@@ -1,3 +1,4 @@
+using JobRush;
 using JobRush.Components;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -5,6 +6,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Register dependancies.
+builder.Services.AddScoped<SessionManager>();
 
 WebApplication app = builder.Build();
 

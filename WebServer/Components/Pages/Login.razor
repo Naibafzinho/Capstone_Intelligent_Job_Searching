@@ -1,5 +1,4 @@
 @page "/login"
-@rendermode InteractiveServer
 @inject NavigationManager navigationManager
 @inject SessionManager sessionManager
 
@@ -59,7 +58,7 @@
 	private void LoginAttempt()	{
 		bool success = sessionManager.AttemptLogin(username, password);
 		if (success) {
-			navigationManager.NavigateTo("/upload");
+			navigationManager.NavigateTo("/");
 		} else {
 			errorMessage = "Invalid username/password. Please try again.";
 		}

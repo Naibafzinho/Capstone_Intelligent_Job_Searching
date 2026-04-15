@@ -1,4 +1,6 @@
 ﻿@page "/"
+@inject NavigationManager navigationManager
+@inject SessionManager sessionManager
 
 <PageTitle>Home</PageTitle>
 
@@ -6,8 +8,14 @@
 	<Navbar />
 </header>
 
-<h1>[Home Page]</h1>
-
-Welcome to JobRUSH. This home page is work-in-progress.
-
-<i>(Probably going to replace this page with an auto-redirect to signup / login.)</i>
+@code {
+	// Redirect to login or home page based on authentication.
+	protected override void OnInitialized()	{
+		if (sessionManager.IsAuthenticated()) {
+			navigationManager.NavigateTo("/upload");
+			// TODO: Redirect to resumes page instead if current user has 1+ resumes.
+		} else {
+			navigationManager.NavigateTo("/login");
+		}
+	}
+}

@@ -41,7 +41,13 @@ def dispatch(operation: str, payload: dict):
         db.add_matches(resumeId=payload["resumeId"], jobPostingId=payload["jobPostingId"], matchScore=payload["matchScore"], matchedKeywords=payload["matchedKeywords"])
     else:
         raise PermanentDBError(f"Unknown operation: {operation}")
-
+    
+def publish_result(job_id: str, success: bool, error: str = None):
+    if job_id:
+        result = {"success": success, "error": error}
+        client.rpush(f"result:{job_id}", json.dumps(result))
+        client.expire(f"result:{job_id}", 20)
+        
 def process_message(message) -> bool:
     """
     Processes a single message. Returns True on success, False on permanent failure.
@@ -50,12 +56,15 @@ def process_message(message) -> bool:
     data = json.loads(message)
     operation = data["operation"]
     payload = data["payload"]
+    job_id = data["job_id"]
 
     try:
         dispatch(operation, payload)
+        publish_result(job_id, True)
         return True
     except PermanentDBError as e:
         print(f"Permanent failure, discarding: {e}")
+        publish_result(job_id, False, str(e))
         return False
     # TransientDBError propagates up to the caller
 

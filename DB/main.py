@@ -28,20 +28,20 @@ async def entry_exist(request: EntryExistScheme):
 
 @app.post("/insertEntry")
 async def insert_entry(request: InsertEntryScheme):
-    success = queue.publish("insertEntry", {"entry": request.entry, "collection_name": request.collection_name})
-    return {"queued": success}
+    result = queue.publish("insertEntry", {"entry": request.entry, "collection_name": request.collection_name})
+    return {"result": result}
 
 @app.post("/updateValue")
 async def update_value(request: UpdateValueScheme):
-    success = queue.publish("updateValue", {"flt": request.flt, "collection_name": request.collection_name, "attribute": request.attribute, "new_value": request.new_value})
-    return {"queued": success}
+    result = queue.publish("updateValue", {"flt": request.flt, "collection_name": request.collection_name, "attribute": request.attribute, "new_value": request.new_value})
+    return {"result": result}
 
 @app.post("/deleteEntry")
 async def delete_entry(request: DeleteEntryScheme):
-    success = queue.publish("deleteEntry", {"flt": request.flt, "collection_name": request.collection_name})
-    return {"queued": success}
+    result = queue.publish("deleteEntry", {"flt": request.flt, "collection_name": request.collection_name})
+    return {"result": result}
 
 @app.post("/addMatches")
 async def add_matches(request: AddMatchesScheme):
-    success = queue.publish("addMatches", {"resumeId": request.resumeId, "jobPostingId": request.jobPostingId, "matchScore": request.matchScore, "matchedKeywords": request.matchedKeywords})
-    return {"queued": success}
+    result = queue.publish("addMatches", {"resumeId": request.resumeId, "jobPostingId": request.jobPostingId, "matchScore": request.matchScore, "matchedKeywords": request.matchedKeywords})
+    return {"result": result}

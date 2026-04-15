@@ -11,7 +11,7 @@ Required environment variables:
     EXTERNAL_API_ENDPOINT  — DB endpoint (default: http://172.24.165.77:8080/insertEntry)
 
 Install dependencies:
-    pip install fastapi uvicorn python-jobspy openai httpx pandas python-dotenv
+    pip install fastapi uvicorn jobspy openai httpx pandas python-dotenv
 """
 
 """
@@ -19,8 +19,8 @@ To run:
     # Install deps
 pip install fastapi uvicorn python-jobspy openai httpx pandas python-dotenv
 
-# Set env vars (don't hardcode the key in code)
-export GROQ_API_KEY=your_key_here
+# Set env vars *KEY NOT HERE!! Ask SILAS for the API Key
+export GROQ_API_KEY=your_key_here (Silas has Key)
 export EXTERNAL_API_ENDPOINT=http://172.24.165.77:8080/insertEntry
 
 uvicorn main:app --reload --host 0.0.0.0 --port 8000

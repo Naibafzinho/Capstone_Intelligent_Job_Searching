@@ -1,28 +1,23 @@
 import redis
 import json
+import uuid
 
 class QueueManager:
     def __init__(self):
         self.client = redis.Redis(host='localhost', port=6379, db=0)
         self.queue_name = "db_operations"
 
-    def publish(self, operation: str, payload: dict) -> bool:
-        """
-        Publishes a write operation to the Redis queue.
-        The worker will pick it up and execute it against the database.
-
-        Example:
-            queue.publish(
-                operation="insertEntry",
-                payload={"collection_name": "Users", "entry": {...}}
-            )
-        # Returns: True if published successfully, False on failure
-        """
+    def publish(self, operation: str, payload: dict, timeout: int = 10) -> dict:
         try:
-            message = json.dumps({"operation": operation, "payload": payload})
+            job_id = str(uuid.uuid4())
+            message = json.dumps({"job_id": job_id, "operation": operation, "payload": payload})
             self.client.rpush(self.queue_name, message)
-            print(f"Published to queue: {operation}")
-            return True
+
+            # wait for the worker to publish the result
+            result = self.client.blpop(f"result:{job_id}", timeout=timeout)
+            if result is None:
+                return {"success": False, "error": "Worker timed out"}
+
+            return json.loads(result[1])
         except Exception as e:
-            print(f"Failed to publish to queue: {e}")
-            return False
+            return {"success": False, "error": str(e)}

@@ -1,17 +1,32 @@
 from pymongo import MongoClient
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
-from pydanticSchemes import UserScheme, ResumeScheme, JobPostingScheme
+from pydantic import ValidationError, create_model
+from pydanticSchemes import MatchEntry, UserScheme, ResumeScheme, JobPostingScheme
 from dotenv import load_dotenv
 import certifi
 import bcrypt
 import os
 
+class TransientDBError(Exception):
+    """DB is temporarily unavailable, should retry"""
+    pass
+
+class PermanentDBError(Exception):
+    """Business logic or validation failure, should discard"""
+    pass
+
 class DBManagement:
 
     def __init__(self):
         load_dotenv()
-        self.client = MongoClient(os.getenv("MONGODB_URI"), tlsCAFile=certifi.where())
+        self.client = MongoClient(
+            os.getenv("MONGODB_URI"), 
+            tlsCAFile=certifi.where(),
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=5000
+        )
         self.db = self.client["TestDB"]
 
     def fetch(self, collection_name: str, filter: Optional[Dict[str, Any]] = None, projection: Optional[Dict[str, int]] = None) -> List[Dict[str, Any]]:
@@ -60,49 +75,46 @@ class DBManagement:
         if collection_name == "Resumes":
             userId = Entry.get("userId")
             if userId is None:
-                print("Upload failed: userId is required for resume entries")
-                return None
+                raise PermanentDBError("userId is required for resume entries")
             try:
                 #count how many resumes belong to the user with the given username
                 docs = self.fetch(collection_name="Resumes", filter={"userId": userId})
             except Exception as e:
-                print(f"Upload failed: {e}")
-                return None
+                print(f"Upload failed")
+                raise TransientDBError(str(e))
             if len(docs) >= 10:
-                print(f"Upload failed: User with ID:{userId} already has 10 resumes")
-                return None   
+                raise PermanentDBError(f"User with ID:{userId} already has 10 resumes")
 
-            #check if title already exist for the same user, if so reject the upload
-            title = Entry.get("title")
-            if title is None:
-                print("Upload failed: title is required for resume entries")
-                return None
-            existing_resumes = self.fetch(collection_name="Resumes", filter={"userId": userId, "title": title})
+            #check if filename already exist for the same user, if so reject the upload
+            filename = Entry.get("filename")
+            if filename is None:
+                raise PermanentDBError("filename is required for resume entries")
+            try:
+                existing_resumes = self.fetch(collection_name="Resumes", filter={"userId": userId, "filename": filename})
+            except Exception as e:
+                raise TransientDBError(str(e))
             if existing_resumes is None:
-                print("Upload failed: could not verify title uniqueness for the user")
-                return None
+                raise PermanentDBError("could not verify filename uniqueness for the user")
             if existing_resumes:
-                print(f"Upload failed: Resume with title '{title}' already exists for user ID:{userId}")
-                return None           
+                raise PermanentDBError(f"Resume with filename '{filename}' already exists for user ID:{userId}")
 
         if (collection_name == "Users"):
             #use username fetch to check for existing user with same username
             username = Entry.get("username")
             if username is None:
-                print("Upload failed: username is required for user entries")
-                return None
-            existing_users = self.fetch(collection_name="Users", filter={"username": username})
+                raise PermanentDBError("username is required for user entries")
+            try:
+                existing_users = self.fetch(collection_name="Users", filter={"username": username})
+            except Exception as e:
+                raise TransientDBError(str(e))
             if existing_users is None:
-                print("Upload failed: could not verify username uniqueness")
-                return None
+                raise PermanentDBError("could not verify username uniqueness")
             if existing_users:
-                print(f"Upload failed: User with username {username} already exists")
-                return None
+                raise PermanentDBError(f"User with username {username} already exists")
             #hash the password before validation and insertion
             password = Entry.get("passwordHash")
             if password is None:
-                print("Upload failed: passwordHash is required for user entries")
-                return None
+                raise PermanentDBError("passwordHash is required for user entries")
             # hash the password and convert bytes to string
             Entry["passwordHash"] = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()  
 
@@ -111,7 +123,7 @@ class DBManagement:
             doc = validated_Entry.model_dump()
         except Exception as e:
             print(f"Validation failed: {e}")
-            return None
+            raise PermanentDBError(str(e))
 
         try:
             coll = self.db[collection_name]
@@ -119,8 +131,8 @@ class DBManagement:
             print(f"Upload successful: inserted_id={res.inserted_id}")
             return str(res.inserted_id)
         except Exception as e:
-            print(f"Upload failed: {e}")
-            return None        
+            print(f"Upload failed")
+            raise  TransientDBError(str(e))      
     
     def update_value(self, flt: Dict[str, Any], attribute: str, new_value: Any, collection_name: str) -> int:
         """
@@ -150,14 +162,20 @@ class DBManagement:
             new_value = bcrypt.hashpw(new_value.encode(), bcrypt.gensalt()).decode()
 
         try:
-            validation = self.get_Scheme(collection_name)(**{attribute: new_value})  # validate the new value for the given attribute
-            validated_dict = validation.model_dump(exclude_unset=True).items()  # get the validated attribute and value
-            for attr, val in validated_dict:
-                attribute = attr
-                new_value = val
-        except Exception as e:
+            scheme = self.get_Scheme(collection_name)
+            field = scheme.model_fields.get(attribute)
+            if field is None:
+                raise PermanentDBError(f"unknown attribute '{attribute}' for collection '{collection_name}'")
+            TempModel = create_model("TempModel", **{attribute: (field.annotation, ...)})
+            validation = TempModel(**{attribute: new_value})
+            new_value = validation.model_dump()[attribute]
+        except PermanentDBError:
+            raise
+        except ValidationError as e:
             print(f"Validation failed: {e}")
-            return 0
+            raise PermanentDBError(str(e))
+        except Exception as e:
+            raise TransientDBError(str(e))
             
         try:
             coll = self.db[collection_name]
@@ -165,8 +183,8 @@ class DBManagement:
             print(f"Update successful: matched={res.matched_count}, modified={res.modified_count}")
             return res.modified_count
         except Exception as e:
-            print(f"Update failed: {e}")
-            return 0
+            print(f"Update failed")
+            raise TransientDBError(str(e))
         
     def delete_entry(self, flt: Optional[Dict[str, Any]], collection_name: str) -> int:
         """
@@ -185,8 +203,7 @@ class DBManagement:
         """
 
         if not flt:
-            print("No filter provided, no documents deleted.")
-            return 0
+            raise PermanentDBError("No filter provided, no documents deleted.")
 
         filter_prepared = self.prepare_filter(flt)
 
@@ -196,8 +213,8 @@ class DBManagement:
             print(f"Delete successful: deleted={res.deleted_count}")
             return res.deleted_count
         except Exception as e:
-            print(f"Delete failed: {e}")
-            return 0    
+            print(f"Delete failed")
+            raise TransientDBError(str(e))
 
     def login_check(self, username: str, password: str) -> bool:
         """
@@ -251,12 +268,76 @@ class DBManagement:
         except Exception as e:
             print(f"Existence check failed: {e}")
             return None
+        
+    def add_matches(self, resumeId: str, jobPostingId: str, matchScore: int, matchedKeywords: List[str]) -> bool:
+        """
+        Adds a match entry to a resume's matches array, keeping only the top 10 highest scoring matches.
+        Validates the match entry against the MatchEntry scheme before insertion.
+        Returns True on success, False on failure.
 
-    #turn ObjectId to string for JSON serialization
+        Example:
+            # Add a match entry to a resume
+            success = db.add_matches(
+                resumeId="abc123",
+                jobPostingId="xyz789",
+                matchScore=85,
+                matchedKeywords=["python", "mongodb", "fastapi"]
+            )
+        # Returns: True if the match entry was added successfully, False on failure
+        """
+        # validate match entry
+        try:
+            match_entry = MatchEntry(
+                jobPostingId=ObjectId(jobPostingId),
+                matchScore=matchScore,
+                matchedKeywords=matchedKeywords
+            ).model_dump()
+        except Exception as e:
+            raise PermanentDBError(str(e))
+            
+
+        try:
+            coll = self.db["Resumes"]
+            resume = coll.find_one({"_id": ObjectId(resumeId)}, {"matches": 1})
+            if resume is None:
+                raise PermanentDBError(f"Resume {resumeId} not found")
+
+            matches = resume.get("matches", [])
+
+            # check if jobPostingId already exists
+            if any(str(m["jobPostingId"]) == jobPostingId for m in matches):
+                raise PermanentDBError(f"Job posting {jobPostingId} already matched to resume {resumeId}")
+
+            matches.append(match_entry)
+
+            # keep only top 10 by score
+            matches = sorted(matches, key=lambda x: x["matchScore"], reverse=True)[:10]
+
+            res = coll.update_one({"_id": ObjectId(resumeId)}, {"$set": {"matches": matches}})
+            if res.modified_count == 1:
+                print(f"Match added successfully to resume {resumeId}")
+                return True
+            else:
+                print(f"Failed to add match to resume {resumeId}")
+                return False
+        except PermanentDBError:
+            raise
+        except Exception as e:
+            raise TransientDBError(str(e))
+
     def stringify_id(self, doc: Dict[str, Any]) -> Dict[str, Any]:
-        #convert the _id field to string if it exists, so that the document can be returned in JSON format
-        if "_id" in doc:
-            doc["_id"] = str(doc["_id"])
+        for key, value in doc.items():
+            if isinstance(value, ObjectId):
+                doc[key] = str(value)
+            elif isinstance(value, dict):
+                doc[key] = self.stringify_id(value)
+            elif isinstance(value, list):
+                doc[key] = [
+                    self.stringify_id(i) if isinstance(i, dict)
+                    else str(i) if isinstance(i, ObjectId)
+                    else i
+                    for i in value
+                ]
         return doc
     
     def prepare_filter(self, flt: Optional[Dict[str, Any]]) -> Dict[str, Any]:

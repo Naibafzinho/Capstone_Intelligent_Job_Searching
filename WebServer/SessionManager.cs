@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 
 // This class is unique for each client connection.
 internal class SessionManager {
-	private readonly HttpClient httpClient;
+	private readonly HttpClient httpClient = new();
 	private bool authenticated = false;
 	/// <summary>
 	/// Used to check whether the current session is authenticated.
@@ -17,10 +17,10 @@ internal class SessionManager {
 	/// <param name="username">The username to authenticate.</param>
 	/// <param name="password">The password to authenticate.</param>
 	/// <returns>True if authentication succeeds (or already authenticated).</returns>
-	public async Task<bool> AttemptLogin(string username, string password) {
+	public bool AttemptLogin(string username, string password) {
 		if (authenticated) return true;
 		//authenticated = FakeAPICallLogin(username, password);
-		var response = await httpClient.PostAsJsonAsync("API/LOCATION/HERE", new { username, password });
+		var response = httpClient.PostAsJsonAsync("API/LOCATION/HERE", new { username, password }).Result;
 		authenticated = response.IsSuccessStatusCode;
 		return authenticated;
 	}

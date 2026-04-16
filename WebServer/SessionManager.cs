@@ -1,5 +1,6 @@
 namespace JobRush;
 
+using System.Text.Json;
 using System.Net.Http.Json;
 
 // This class is unique for each client connection.
@@ -19,10 +20,23 @@ internal class SessionManager {
 	/// <returns>True if authentication succeeds (or already authenticated).</returns>
 	public bool AttemptLogin(string username, string password) {
 		if (authenticated) return true;
-		//authenticated = FakeAPICallLogin(username, password);
-		var response = httpClient.PostAsJsonAsync("API/LOCATION/HERE", new { username, password }).Result;
-		authenticated = response.IsSuccessStatusCode;
-		return authenticated;
+
+		// Ask DB if username/password combo is valid.
+		HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/login", new { username, password }).Result;
+
+		// If DB responds successfully...
+		if (response.IsSuccessStatusCode) {
+			// Convert the response content into a JSON object.
+			JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
+			// Get the success property if possible.
+			if (responseJSON.RootElement.TryGetProperty("success", out JsonElement successElement)) {
+				// Authenticate and return true if DB confirmed credentials are valid.
+				if (successElement.GetBoolean()) authenticated = true;
+				return true;
+			}
+		}
+		
+		return false; // Return false by default to prevent login if DB response fails.
 	}
 	/// <summary>
 	/// Performs a DB API call to add a new user with the provided credentials. Automatically authenticates if successfull.

@@ -9,6 +9,7 @@ builder.Services.AddRazorComponents()
 
 // Register dependancies.
 builder.Services.AddScoped<SessionManager>();
+//builder.Services.AddHttpClient("apiClient", client => {client.BaseAddress = new Uri("http://127.0.0.1:8000/");});
 
 WebApplication app = builder.Build();
 

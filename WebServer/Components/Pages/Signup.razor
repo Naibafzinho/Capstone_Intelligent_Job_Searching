@@ -1,4 +1,6 @@
 @page "/signup"
+@inherits Redirect
+
 @inject NavigationManager navigationManager
 @inject SessionManager sessionManager
 
@@ -47,6 +49,11 @@
 </div>
 
 @code {
+	protected override void OnInitialized() {
+		invert = true;
+		base.OnInitialized();
+	}
+
 	/// <summary>
 	/// The email currently typed by the user.
 	/// </summary>
@@ -70,13 +77,6 @@
 			navigationManager.NavigateTo("/");
 		} else {
 			errorMessage = "Username already in use. Please try another username.";
-		}
-	}
-
-	// Redirect to home page if authenticated.
-	protected override void OnInitialized()	{
-		if (sessionManager.IsAuthenticated()) {
-			navigationManager.NavigateTo("/");
 		}
 	}
 }

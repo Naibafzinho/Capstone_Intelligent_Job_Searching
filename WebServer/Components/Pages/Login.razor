@@ -1,4 +1,6 @@
 @page "/login"
+@inherits Redirect
+
 @inject NavigationManager navigationManager
 @inject SessionManager sessionManager
 
@@ -42,6 +44,11 @@
 </div>
 
 @code {
+	protected override void OnInitialized() {
+		invert = true;
+		base.OnInitialized();
+	}
+
 	/// <summary>
 	/// The username currently typed by the user.
 	/// </summary>
@@ -55,19 +62,12 @@
 	/// </summary>
 	private string errorMessage = "";
 
-	private void LoginAttempt()	{
+	private void LoginAttempt() {
 		bool success = sessionManager.AttemptLogin(username, password);
 		if (success) {
 			navigationManager.NavigateTo("/");
 		} else {
 			errorMessage = "Invalid username/password. Please try again.";
-		}
-	}
-
-	// Redirect to home page if authenticated.
-	protected override void OnInitialized()	{
-		if (sessionManager.IsAuthenticated()) {
-			navigationManager.NavigateTo("/");
 		}
 	}
 }

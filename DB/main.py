@@ -22,7 +22,7 @@ async def fetch_users(request: FetchRequestScheme):
 @app.post("/entryExist")
 async def entry_exist(request: EntryExistScheme):
     count = db.entry_exists(collection_name=request.collection_name, flt=request.flt)
-    return count
+    return {"result": count}
 
 # --- writes go through queue ---
 

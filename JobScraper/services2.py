@@ -15,6 +15,7 @@ from datetime import datetime, date
 from typing import Optional
 from urllib.parse import urlparse
 
+from dotenv import load_dotenv
 import httpx
 import pandas as pd
 from fastapi import HTTPException, UploadFile
@@ -23,6 +24,7 @@ from openai import OpenAI
 # ---------------------------------------------------------------------------
 # Configuration (override via environment variables in production)
 # ---------------------------------------------------------------------------
+load_dotenv()
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 EXTERNAL_API_ENDPOINT: str = os.getenv(
     "EXTERNAL_API_ENDPOINT", "http://172.24.165.77:8080/insertEntry"

@@ -33,7 +33,7 @@ import pandas as pd
 from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 
-from services import (
+from services2 import (
     insert_jobs_to_db,
     read_skills_file,
     scrape_jobs_for_titles,

@@ -12,12 +12,12 @@ queue = QueueManager()    # used for writes only
 @app.post("/login")
 async def login(request: LoginScheme):
     success = db.login_check(username=request.username, password=request.password)
-    return {"success": success}
+    return {"result": success}
 
 @app.post("/fetch")
 async def fetch_users(request: FetchRequestScheme):
     users = db.fetch(collection_name=request.collection_name, filter=request.filter, projection=request.projection)
-    return {"results": users}
+    return {"result": users}
 
 @app.post("/entryExist")
 async def entry_exist(request: EntryExistScheme):

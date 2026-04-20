@@ -45,10 +45,49 @@ internal class SessionManager {
 	/// <param name="username">The new user's username.</param>
 	/// <param name="password">The new user's password.</param>
 	/// <returns>True if a new user was added successfully.</returns>
+
 	public bool AttemptSignup(string email, string username, string password) {
-		bool success = FakeAPICallSignup(email, username, password);
-		if (success) authenticated = true;
-		return success;
+
+		// Validation rules
+		if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || !username.Contains("@")) {
+			return false;
+		}
+
+		try {
+			/// Send signup request to DB API
+			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/signup", new { email, username, password }).Result;
+
+			// If request failed at HTTP level
+			if (!response.IsSuccessStatusCode) {
+				return false;
+			}
+
+			/// Parse JSON Response
+			JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
+
+			// Check success
+			if (responseJSON.RootElement.TryGetProperty("success", out JsonElement successElement)) {
+				bool success = successElement.GetBoolean();
+
+				// Auto-login on successful signup
+				if (success) {
+					authenticated = true;
+				}
+
+				return success;
+			}
+
+			return false;
+		}
+		catch {
+			// Handles network errors
+			return false;
+		}
+	
+
+		///bool success = FakeAPICallSignup(email, username, password);
+		///if (success) authenticated = true;
+		///return success;
 	}
 
 	// Temporary test functions.

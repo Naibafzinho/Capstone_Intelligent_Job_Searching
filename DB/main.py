@@ -21,7 +21,7 @@ async def fetch_users(request: FetchRequestScheme):
 
 @app.post("/entryExist")
 async def entry_exist(request: EntryExistScheme):
-    count = db.entry_exists(collection_name=request.collection_name, flt=request.flt)
+    count = db.entry_exists(collection_name=request.collection_name, flt=request.filter)
     return {"result": count}
 
 # --- writes go through queue ---
@@ -33,12 +33,12 @@ async def insert_entry(request: InsertEntryScheme):
 
 @app.post("/updateValue")
 async def update_value(request: UpdateValueScheme):
-    result = queue.publish("updateValue", {"flt": request.flt, "collection_name": request.collection_name, "attribute": request.attribute, "new_value": request.new_value})
+    result = queue.publish("updateValue", {"flt": request.filter, "collection_name": request.collection_name, "attribute": request.attribute, "new_value": request.new_value})
     return {"result": result}
 
 @app.post("/deleteEntry")
 async def delete_entry(request: DeleteEntryScheme):
-    result = queue.publish("deleteEntry", {"flt": request.flt, "collection_name": request.collection_name})
+    result = queue.publish("deleteEntry", {"flt": request.filter, "collection_name": request.collection_name})
     return {"result": result}
 
 @app.post("/addMatches")

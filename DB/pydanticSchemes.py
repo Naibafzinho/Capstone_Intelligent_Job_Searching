@@ -161,13 +161,13 @@ class InsertEntryScheme(BaseModel):
 
 class UpdateValueScheme(BaseModel):
     collection_name: str
-    flt: Dict[str, Any]
+    filter: Dict[str, Any]
     attribute: str
     new_value: Any
 
 class DeleteEntryScheme(BaseModel):
     collection_name: str
-    flt: Optional[Dict[str, Any]] = None
+    filter: Optional[Dict[str, Any]] = None
 
 class LoginScheme(BaseModel):
     username: str
@@ -175,7 +175,7 @@ class LoginScheme(BaseModel):
 
 class EntryExistScheme(BaseModel):
     collection_name: str
-    flt: Optional[Dict[str,Any]] = None
+    filter: Optional[Dict[str,Any]] = None
 
 class AddMatchesScheme(BaseModel):
     resumeId: str

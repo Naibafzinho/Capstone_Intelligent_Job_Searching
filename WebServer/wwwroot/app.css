@@ -112,7 +112,8 @@ h1:focus {
 
 /* Logo image height */
 .navbar img {
-	height: 1.2rem;
+	height: 3.2rem;
+	border-radius: 10%;
 }
 
 /* Slight scale-up on hover for links and buttons */

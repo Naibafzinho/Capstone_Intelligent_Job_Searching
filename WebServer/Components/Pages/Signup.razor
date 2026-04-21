@@ -74,7 +74,7 @@
 	private void SignupAttempt() {
 		bool success = sessionManager.AttemptSignup(email, username, password);
 		if (success) {
-			navigationManager.NavigateTo("/");
+			navigationManager.NavigateTo("/"); // Root auto-redirects to the appropriate home based on context.
 		} else {
 			errorMessage = "Username already in use. Please try another username.";
 		}

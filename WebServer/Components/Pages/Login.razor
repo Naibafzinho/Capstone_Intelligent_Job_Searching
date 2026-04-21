@@ -65,7 +65,7 @@
 	private void LoginAttempt() {
 		bool success = sessionManager.AttemptLogin(username, password);
 		if (success) {
-			navigationManager.NavigateTo("/");
+			navigationManager.NavigateTo("/"); // Root auto-redirects to the appropriate home based on context.
 		} else {
 			errorMessage = "Invalid username/password. Please try again.";
 		}

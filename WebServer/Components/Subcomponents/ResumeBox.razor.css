@@ -40,8 +40,8 @@
 }
 
 /* Shared styles for all action links and buttons */
-.resumeBox a,
-.resumeBox button {
+::deep a,
+button {
 	font-size: 16px;
 	color: black;
 	background-color: white;
@@ -54,8 +54,8 @@
 }
 
 /* Slight scale-up on hover */
-.resumeBox a:hover,
-.resumeBox button:hover {
+::deep a:hover,
+button:hover {
 	transform: scale(1.05);
 }
 

@@ -16,7 +16,7 @@ internal class SessionManager {
 	/// <summary>
 	/// Unauthenticates the current session. Should be followed by a redirect.
 	/// </summary>
-	public void LogOut() => authenticated = false;
+	public void Logout() => authenticated = false;
 
 	/// <summary>
 	/// Performs a DB API call to authenticate the provided credentials.

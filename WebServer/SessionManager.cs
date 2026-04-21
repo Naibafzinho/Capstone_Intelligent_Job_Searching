@@ -1,9 +1,9 @@
-namespace JobRush;
-
 using System.Text.Json;
-using System.Net.Http.Json;
 
-// This class is unique for each client connection.
+namespace JobRush;
+/// <summary>
+/// Handles user authentication. This class is unique for each client connection.
+/// </summary>
 internal class SessionManager {
 	private readonly HttpClient httpClient = new();
 	private bool authenticated = false;

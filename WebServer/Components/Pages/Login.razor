@@ -62,6 +62,9 @@
 	/// </summary>
 	private string errorMessage = "";
 
+	/// <summary>
+	/// Attempts to login with the currently provided username and password. Redirects to home on success, displays error text on fail.
+	/// </summary>
 	private void LoginAttempt() {
 		bool success = sessionManager.AttemptLogin(username, password);
 		if (success) {

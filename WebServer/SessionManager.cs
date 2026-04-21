@@ -12,6 +12,12 @@ internal class SessionManager {
 	/// </summary>
 	/// <returns>True if session is authenticated.</returns>
 	public bool IsAuthenticated() => authenticated;
+
+	/// <summary>
+	/// Unauthenticates the current session. Should be followed by a redirect.
+	/// </summary>
+	public void Logout() => authenticated = false;
+
 	/// <summary>
 	/// Performs a DB API call to authenticate the provided credentials.
 	/// </summary>
@@ -21,23 +27,29 @@ internal class SessionManager {
 	public bool AttemptLogin(string username, string password) {
 		if (authenticated) return true;
 
-		// Ask DB if username/password combo is valid.
-		HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/login", new { username, password }).Result;
+			// Ask DB if username/password combo is valid.
+			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/login", new {
+				username,
+				password
+			}).Result;
 
-		// If DB responds successfully...
-		if (response.IsSuccessStatusCode) {
+			// If request failed at HTTP level, return false.
+			if (!response.IsSuccessStatusCode) return false;
+
 			// Convert the response content into a JSON object.
 			JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
+
 			// Get the success property if possible.
-			if (responseJSON.RootElement.TryGetProperty("success", out JsonElement successElement)) {
+			if (responseJSON.RootElement.TryGetProperty("result", out JsonElement successElement)) {
 				// Authenticate and return true if DB confirmed credentials are valid.
 				if (successElement.GetBoolean()) authenticated = true;
 				return true;
 			}
-		}
-		
-		return false; // Return false by default to prevent login if DB response fails.
+
+			// Return false by default to prevent login if DB response fails.
+			return false;
 	}
+
 	/// <summary>
 	/// Performs a DB API call to add a new user with the provided credentials. Automatically authenticates if successfull.
 	/// </summary>
@@ -45,52 +57,51 @@ internal class SessionManager {
 	/// <param name="username">The new user's username.</param>
 	/// <param name="password">The new user's password.</param>
 	/// <returns>True if a new user was added successfully.</returns>
-
 	public bool AttemptSignup(string email, string username, string password) {
-
-		// Validation rules
-		if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || !username.Contains("@")) {
-			return false;
-		}
+		// Validation rules:
+		if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password)) return false;
 
 		try {
-			/// Send signup request to DB API
-			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/signup", new { email, username, password }).Result;
+			// Send signup request to DB API.
+			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/insertEntry", new {
+				collection_name = "Users",
+				entry = new {
+					username,
+					passwordHash = password,
+					email
+				}
+			}).Result;
 
-			// If request failed at HTTP level
-			if (!response.IsSuccessStatusCode) {
-				return false;
-			}
+			// If request failed at HTTP level, return false.
+			if (!response.IsSuccessStatusCode) return false;
 
-			/// Parse JSON Response
+			// Convert the response content into a JSON object.
 			JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
 
-			// Check success
-			if (responseJSON.RootElement.TryGetProperty("success", out JsonElement successElement)) {
-				bool success = successElement.GetBoolean();
-
+			// Get the success property if possible.
+			if (responseJSON.RootElement.TryGetProperty("result", out JsonElement resultElement) && resultElement.TryGetProperty("success", out JsonElement successElement)) {
 				// Auto-login on successful signup
-				if (success) {
+				if (successElement.GetBoolean()) {
 					authenticated = true;
+					return true;
 				}
-
-				return success;
 			}
 
+			// Return false by default.
+			return false;
+		} catch {
+			// Handle network errors.
 			return false;
 		}
-		catch {
-			// Handles network errors
-			return false;
-		}
-	
 
-		///bool success = FakeAPICallSignup(email, username, password);
-		///if (success) authenticated = true;
-		///return success;
+		/*
+		bool success = FakeAPICallSignup(email, username, password);
+		if (success) authenticated = true;
+		return success;
+		*/
 	}
 
-	// Temporary test functions.
-	private bool FakeAPICallLogin(string username, string password) => username == "admin" && password == "passwd" ? true : false;
-	private bool FakeAPICallSignup(string email, string username, string password) => username != "admin" ? true : false;
+	// Temporary test functions. Simulates a single account with username "admin", password "passwd", and an arbitrary email.
+	private bool FakeAPICallLogin(string username, string password) => username == "admin" && password == "passwd";
+	private bool FakeAPICallSignup(string email, string username, string password) => username != "admin";
 }

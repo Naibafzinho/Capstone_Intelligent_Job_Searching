@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any
 from enum import Enum
 from bson import ObjectId
 
+""""
 class JobType(str, Enum):
     FULL_TIME = "full-time"
     PART_TIME = "part-time"
@@ -51,37 +52,24 @@ class companySize(str, Enum):
     ONE_THOUSAND_ONE_TO_5000 = "1001-5000"
     FIVE_THOUSAND_ONE_TO_10000 = "5001-10000"
     TEN_THOUSAND_PLUS = "10000+"
+"""
 
 class MatchEntry(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    jobPostingId: ObjectId
+    resumeId: ObjectId
     matchScore: int
     matchedKeywords: List[str]
 
 class UserScheme(BaseModel):
     username: str
     passwordHash: str
-    locationConfig: Optional[List[str]] = []
-    expectedSalaryConfig: Optional[List[expectedSalary]] = []
-    jobTypeConfig: Optional[List[JobType]] = []
-    industryConfig: Optional[List[industry]] = []
-    experienceLevelConfig: Optional[List[experienceLevel]] = []
-    remoteConfig: Optional[List[remote]] = []
-    companySizeConfig: Optional[List[companySize]] = []
     firstName: Optional[str] = ""
     lastName: Optional[str] = ""
     email: Optional[str] = ""
     phone: Optional[str] = ""
 
     @field_validator(
-        'locationConfig',
-        'expectedSalaryConfig', 
-        'jobTypeConfig', 
-        'industryConfig',
-        'experienceLevelConfig',
-        'remoteConfig',
-        'companySizeConfig',
         'email',
         mode='before'
     )
@@ -99,12 +87,25 @@ class ResumeScheme(BaseModel):
     data: bytes
     uploadDate: str
     isActive: bool
+    locationConfig: Optional[List[str]] = []
+    expectedSalaryConfig: Optional[List[str]] = [] #expectedSalary
+    jobTypeConfig: Optional[List[str]] = [] #JobType
+    industryConfig: Optional[List[str]] = [] #industry
+    experienceLevelConfig: Optional[List[str]] = [] #experienceLevel
+    remoteConfig: Optional[List[str]] = [] #remote
+    companySizeConfig: Optional[List[str]] = [] #companySize
     tags: Optional[List[str]] = []
     extractedKeywords: Optional[List[str]] = []
     atsScore: Optional[int] = ""
-    matches: Optional[List[MatchEntry]] = []
 
     @field_validator(
+        'locationConfig',
+        'expectedSalaryConfig', 
+        'jobTypeConfig', 
+        'industryConfig',
+        'experienceLevelConfig',
+        'remoteConfig',
+        'companySizeConfig',
         'tags', 
         'extractedKeywords',
         mode='before'
@@ -123,15 +124,16 @@ class JobPostingScheme(BaseModel):
     domain: str
     company: Optional[str] = ""
     locationC: Optional[List[str]] = []
-    salaryRangeC: Optional[List[expectedSalary]] = ""
-    jobTypeC: Optional[List[JobType]] = []
-    industryC: Optional[List[industry]] = []
-    experienceLevelC: Optional[List[experienceLevel]] = []
-    remoteC: Optional[List[remote]] = []
-    companySizeC: Optional[companySize] = ""
+    salaryRangeC: Optional[List[str]] = "" #expectedSalary
+    jobTypeC: Optional[List[str]] = [] #JobType
+    industryC: Optional[List[str]] = [] #industry
+    experienceLevelC: Optional[List[str]] = [] #experienceLevel
+    remoteC: Optional[List[str]] = [] #remote
+    companySizeC: Optional[str] = "" #companySize
     text: str
     url: str
     keywords: Optional[List[str]] = []
+    matches: Optional[List[MatchEntry]] = []
 
     @field_validator(
         'company',

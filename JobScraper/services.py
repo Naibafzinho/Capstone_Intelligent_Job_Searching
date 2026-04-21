@@ -16,6 +16,7 @@ from datetime import datetime, date
 from typing import Optional
 from urllib.parse import urlparse
 
+from dotenv import load_dotenv
 import httpx
 import pandas as pd
 from fastapi import HTTPException, UploadFile
@@ -28,10 +29,11 @@ SCRAPE_TIMEOUT: int = int(os.getenv("SCRAPE_TIMEOUT", "45"))
 # ---------------------------------------------------------------------------
 # Configuration (override via environment variables in production)
 # ---------------------------------------------------------------------------
+load_dotenv()  # Load .env file if present
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
 EXTERNAL_API_ENDPOINT: str = os.getenv(
-    "EXTERNAL_API_ENDPOINT", "http://172.24.165.77:8080/insertEntry"
+    "EXTERNAL_API_ENDPOINT", "http://127.0.0.1:8000/insertEntry"
 )
 COLLECTION_NAME: str = "JobPostings"
  
@@ -46,8 +48,8 @@ def _get_groq_client() -> OpenAI:
             detail="GROQ_API_KEY environment variable is not set.",
         )
     return OpenAI(api_key=GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
- 
- 
+
+
 # ---------------------------------------------------------------------------
 # 1. Read skills from the uploaded .txt file
 # ---------------------------------------------------------------------------
@@ -57,8 +59,8 @@ async def read_skills_file(file: UploadFile) -> str:
         raise HTTPException(status_code=400, detail="Skills file must be a .txt file.")
     content = await file.read()
     return content.decode("utf-8")
- 
- 
+
+
 # ---------------------------------------------------------------------------
 # 2. Convert raw skills text → up to 5 job title strings via Groq AI
 # ---------------------------------------------------------------------------
@@ -69,14 +71,14 @@ def skills_to_job_titles(skills: str) -> list[str]:
     """
     if not skills.strip():
         return []
- 
+
     client = _get_groq_client()
     prompt = (
         f"Given these skills:\n{skills}\n\n"
         "Return a list of up to 5 relevant job titles. "
         "Only return a Python list of strings and nothing else."
     )
- 
+
     try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -104,8 +106,8 @@ def skills_to_job_titles(skills: str) -> list[str]:
             status_code=502,
             detail=f"AI title generation failed: {exc}",
         )
- 
- 
+
+
 # ---------------------------------------------------------------------------
 # 3. Scrape jobs for each job title via JobSpy
 # ---------------------------------------------------------------------------
@@ -133,9 +135,9 @@ def scrape_jobs_for_titles(
                 ),
             )
         raise
- 
+
     frames: list[pd.DataFrame] = []
- 
+
     def _scrape(term: str, site: str) -> pd.DataFrame | None:
         """Scrape a single term/site combination — runs in a thread."""
         try:
@@ -146,13 +148,12 @@ def scrape_jobs_for_titles(
                 results_wanted=results_wanted,
                 hours_old=hours_old,
                 country_indeed="USA",
-                linkedin_fetch_description=True
             )
             return df if not df.empty else None
         except Exception as exc:
             print(f"[scrape_jobs] Error for term='{term}' site='{site}': {exc}")
             return None
- 
+
     for term in set(titles):  # deduplicate titles
         for site in sites:
             print(f"[scrape_jobs] Scraping term='{term}' site='{site}' ...")
@@ -166,32 +167,34 @@ def scrape_jobs_for_titles(
                         print(f"[scrape_jobs] Got {len(df)} results for term='{term}' site='{site}'")
                 except FuturesTimeoutError:
                     print(f"[scrape_jobs] Timed out after {SCRAPE_TIMEOUT}s for term='{term}' site='{site}', skipping.")
- 
-    if not frames:
+
+    valid_frames = [f for f in frames if not f.empty and not f.isna().all().all()]
+
+    if not valid_frames:
         raise HTTPException(
             status_code=404,
             detail="No jobs found for the provided skills / location.",
         )
- 
-    return pd.concat(frames, ignore_index=True)
- 
- 
+
+    return pd.concat(valid_frames, ignore_index=True)
+
+
 # ---------------------------------------------------------------------------
 # 4. Format one job row into the target DB JSON schema
 # ---------------------------------------------------------------------------
 def format_job_entry(job_row: pd.Series) -> dict:
     """Map a single JobSpy DataFrame row to the JobPostings entry structure."""
- 
+
     def to_list_or_empty(value) -> list:
         if value is None or (isinstance(value, float) and pd.isna(value)) or value == "":
             return []
         return [str(value)]
- 
-    def safe_str(value) -> Optional[str]:
+
+    def safe_str(value) -> str:
         if value is None or (isinstance(value, float) and pd.isna(value)):
-            return None
+            return ""
         return str(value)
- 
+
     # Resolve the best URL and derive the domain from it
     direct_url = job_row.get("job_url_direct")
     fallback_url = job_row.get("job_url")
@@ -201,12 +204,12 @@ def format_job_entry(job_row: pd.Series) -> dict:
         else None
     )
     domain = urlparse(best_url).netloc if best_url else "unknown.com"
- 
+
     # Description
     description = job_row.get("description", "")
     if not description or pd.isna(description):
         description = "No description provided."
- 
+
     # Date posted — normalise to ISO string
     date_posted_str = None
     raw_date = job_row.get("date_posted")
@@ -215,27 +218,27 @@ def format_job_entry(job_row: pd.Series) -> dict:
             date_posted_str = pd.Timestamp(raw_date).isoformat()
         else:
             date_posted_str = str(raw_date)
- 
+
     return {
         "title": job_row.get("title") or "Untitled Job",
-        "datePosted": date_posted_str,
+        "datePosted": date_posted_str or "",
         "dateExtracted": datetime.now().isoformat(),
-        "dateExpiring": None,
+        "dateExpiring": "",
         "domain": domain,
         "company": job_row.get("company") or "Unknown Company",
         "locationC": to_list_or_empty(job_row.get("location")),
         "salaryRangeC": to_list_or_empty(job_row.get("salary_range")),
         "jobTypeC": to_list_or_empty(job_row.get("job_type")),
-        "inndustryC": [],          # not available from JobSpy
-        "experienceLevelC": [],    # not available from JobSpy
+        "industryC": [],
+        "experienceLevelC": [],
         "remoteC": to_list_or_empty(job_row.get("work_from_home_type")),
         "companySizeC": safe_str(job_row.get("company_num_employees")),
         "text": str(description),
-        "url": str(best_url) if best_url else "No URL",
+        "url": str(best_url) if best_url else "",
         "keywords": [],
     }
- 
- 
+
+
 # ---------------------------------------------------------------------------
 # 5. POST every job to the external DB and return per-job results
 # ---------------------------------------------------------------------------
@@ -245,7 +248,7 @@ async def insert_jobs_to_db(jobs_df: pd.DataFrame) -> list[dict]:
     Returns a list of result dicts: {title, status, http_code?, message?}
     """
     results: list[dict] = []
- 
+
     async with httpx.AsyncClient(timeout=3) as http:
         for _, row in jobs_df.iterrows():
             entry = format_job_entry(row)
@@ -270,6 +273,5 @@ async def insert_jobs_to_db(jobs_df: pd.DataFrame) -> list[dict]:
                 })
             except Exception as exc:
                 results.append({"title": title, "status": "error", "message": str(exc)})
- 
+
     return results
- 

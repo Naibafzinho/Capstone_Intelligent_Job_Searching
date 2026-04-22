@@ -1,12 +1,9 @@
 /*
-
-
 .navbar {
 	width: 100%;
 	background-color: #1111e9;
 	padding: 40px 0;
 }
-
 
 .navbar ul {
 	display: flex;
@@ -19,7 +16,6 @@
 	max-width: 10000px;
 }
 
-
 .navbar li {
 	background-color: white;
 	border-radius: 6px;
@@ -29,7 +25,6 @@
 	cursor: pointer;
 }
 
-
 ::deep .navbar a {
 	text-decoration: none;
 	font-size: 1rem;
@@ -38,123 +33,137 @@
 	padding: 15px 30px;
 }
 
-
 .navbar img {
 	height: 3.2rem;
 	border-radius: 10%;
 }
 
-
 .navbar li:hover {
 	transform: scale(1.05);
 }
-
 */
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Sora', sans-serif;
-            background: #f0f2f7;
-            min-height: 100vh;
-        }
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
 
-        /* ── Navbar ── */
-        .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: #0202d6;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            backdrop-filter: blur(12px);
-        }
+body {
+	font-family: 'Sora', sans-serif;
+	background: #f0f2f7;
+	min-height: 100vh;
+}
 
-        .navbar-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
-            height: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+/* ── Navbar ── */
+.navbar {
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background: #0202d6;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+	backdrop-filter: blur(12px);
+}
 
-        /* Brand */
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            text-decoration: none;
-        }
+.navbar-inner {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 0 24px;
+	height: 90px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
 
-        .navbar-brand img {
-            height: 70px;
-            width: auto;
-        }
+/* Brand */
+.navbar-brand {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	text-decoration: none;
+}
 
-        .navbar-brand .brand-text {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            color: #ffffff;
-        }
+.navbar-brand img {
+	height: 70px;
+	width: auto;
+}
 
-        .navbar-brand .brand-text span {
-            color: #000000;
-        }
+.navbar-brand .brand-text {
+	font-size: 1.25rem;
+	font-weight: 700;
+	letter-spacing: -0.5px;
+	color: #ffffff;
+}
 
-        /* Nav links */
-        .navbar-links {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            list-style: none;
-        }
+.navbar-brand .brand-text span {
+	color: #000000;
+}
 
-        .navbar-links li a {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            text-decoration: none;
-            color: rgb(255, 255, 255);
-            font-size: 0.875rem;
-            font-weight: 500;
-            padding: 8px 14px;
-            border-radius: 8px;
-            transition: color 0.2s, background 0.2s;
-            white-space: nowrap;
-        }
+/* Nav links */
+.navbar-links {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	list-style: none;
+}
 
-        .navbar-links li a:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.08);
-        }
+::deep .navbar-links li a {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	text-decoration: none;
+	color: rgb(255, 255, 255);
+	font-size: 0.875rem;
+	font-weight: 500;
+	padding: 8px 14px;
+	border-radius: 8px;
+	transition: color 0.2s, background 0.2s;
+	white-space: nowrap;
+}
 
-        .navbar-links li a svg {
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-        .navbar-links li a:hover svg { opacity: 1; }
+::deep .navbar-links li a:hover {
+	color: #fff;
+	background: rgba(255, 255, 255, 0.08);
+}
 
-        /* Logout is a pill button */
-        .navbar-links .logout a {
-            color: #f83c3c;
-            background: rgba(205, 14, 14, 0.08);
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            padding: 7px 16px;
-        }
-        .navbar-links .logout a:hover {
-            background: rgba(255,90,90,0.18);
-            color: #ff5a5a;
-        }
+::deep .navbar-links li a svg {
+	opacity: 0.7;
+	transition: opacity 0.2s;
+}
 
-        /* ── Demo page content ── */
-        .page-content {
-            max-width: 700px;
-            margin: 80px auto;
-            padding: 0 24px;
-            text-align: center;
-            color: #555;
-            font-family: 'Sora', sans-serif;
-        }
-        .page-content h1 { font-size: 1.6rem; color: #111; margin-bottom: 8px; }
-        .page-content p { font-size: 0.95rem; }
+::deep .navbar-links li a:hover svg {
+	opacity: 1;
+}
+
+/* Logout is a pill button */
+::deep .navbar-links .logout a {
+	color: #f83c3c;
+	background: rgba(205, 14, 14, 0.08);
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	padding: 7px 16px;
+}
+
+::deep .navbar-links .logout a:hover {
+	background: rgba(255, 90, 90, 0.18);
+	color: #ff5a5a;
+}
+
+/* ── Demo page content ── */
+.page-content {
+	max-width: 700px;
+	margin: 80px auto;
+	padding: 0 24px;
+	text-align: center;
+	color: #555;
+	font-family: 'Sora', sans-serif;
+}
+
+.page-content h1 {
+	font-size: 1.6rem;
+	color: #111;
+	margin-bottom: 8px;
+}
+
+.page-content p {
+	font-size: 0.95rem;
+}

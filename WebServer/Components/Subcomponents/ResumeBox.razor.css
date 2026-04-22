@@ -23,7 +23,6 @@
 	align-items: center;
 }
 
-
 .resumeTitleInput {
 	margin-right: auto;
 	font-weight: bold;
@@ -32,7 +31,6 @@
 	border-radius: 6px;
 	border: none;
 }
-
 
 ::deep a,
 button {
@@ -140,7 +138,7 @@ button:hover {
 	flex-shrink: 0;
 }
 
-.resume-actions a,
+::deep .resume-actions a,
 .resume-actions button {
 	font-family: 'Sora', sans-serif;
 	font-size: 0.8rem;

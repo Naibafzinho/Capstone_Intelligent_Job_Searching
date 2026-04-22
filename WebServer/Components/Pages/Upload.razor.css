@@ -8,7 +8,7 @@
 	text-align: center;
 	width: 79%;
 	height: 300px;
-	margin: 50px auto;
+	margin: 40px auto;
 	background-color: #fafafa;
 	display: flex;
 	justify-content: center;
@@ -53,5 +53,6 @@ button {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 5px;
+	margin-top: 35px;
+	font-size: 15pt;
 }

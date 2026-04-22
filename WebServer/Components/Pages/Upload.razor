@@ -1,6 +1,9 @@
 @page "/upload"
 @inherits Redirect
 
+@inject IJSRuntime JSRuntime
+@inject ResumeUploader resumeUploader
+
 <PageTitle>Upload Resume</PageTitle>
 
 <div class="upload-wrapper">
@@ -9,29 +12,97 @@
 		<Navbar />
 	</header>
 
+	<!--Upload Status-->
+	<p class="status" style="color: @statusColor;">@status</p>
+
 	<!--Upload Box for Resumes-->
-	<div class="upload-box" id="drop-area">
+	<div class="upload-box" id="drop-area" @ondrop=UploadResume @ondragover:preventDefault>
 		<p>Drag & Drop or</p>
-		<button type="button" id="browseBtn" @onclick=BrowseFiles>Browse Files</button>
-		<input type="file" id="fileInput" hidden>
-		<p id="fileName"></p>
+		<button type="button" @onclick=BrowseFiles>Browse Files</button>
+		<InputFile OnChange=HandleFileSelection accept=".txt,.doc,.docx,.pdf" hidden />
+		<p id="fileName">@fileName</p>
 	</div>
 
 	<!--Upload Resume button for processing-->
 	<button type="button" class="uploadBtn" @onclick=UploadResume>Upload and Process</button>
 
-	<!--Upload Status-->
-	<p class="status">Status: <span id="status">In Progress</span></p>
-
 </div>
 
 @code {
-	private void BrowseFiles() {
-		// FIRST: Check if builtin HTML file upload functionality?
-		// TODO: Open file upload popup window (filter to valid filetypes), store in local variable(?).
+	/// <summary>
+	/// The currently uploaded resume file.
+	/// </summary>
+	private IBrowserFile? resumeFile;
+	/// <summary>
+	/// The currently uploaded resume filename.
+	/// </summary>
+	private string fileName = "";
+
+	/// <summary>
+	/// The current status message to display to user. Change via SetStatus(), not directly.
+	/// </summary>
+	private string status = "Select a resume file to upload (txt, doc, docx, or pdf).";
+	/// <summary>
+	/// The CSS color of the current status message. Change via SetStatus(), not directly.
+	/// </summary>
+	private string statusColor = "inherit"; // Inherit sets status text to default color.
+	enum StatusType { standard, success, failure }
+
+	/// <summary>
+	/// Sets the current status text.
+	/// </summary>
+	/// <param name="message">The message string.</param>
+	/// <param name="type">The type of message. Affects display color.</param>
+	private void SetStatus(string message, StatusType type = StatusType.standard) {
+		status = message;
+		statusColor = type switch {
+			StatusType.standard => "inherit",
+			StatusType.success => "green",
+			StatusType.failure => "#CC2533",
+			_ => "inherit"
+		};
 	}
 
-	private void UploadResume() {
-		// TODO: Send resume to preprocessing, update status (rememer to use InteractiveServer rendermode).
+	/// <summary>
+	/// Opens the file upload window manually via JS interop.
+	/// </summary>
+	private async Task BrowseFiles() {
+		// TODO: Prevent user from interacting with webpage while upload window is open.
+		// Open file upload popup window, filter to valid filetypes.
+		await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('input[type=file]').click();");
+	}
+
+	/// <summary>
+	/// Runs when the user selects a file in the upload window.
+	/// </summary>
+	private void HandleFileSelection(InputFileChangeEventArgs args) {
+		resumeFile = args.File;
+		fileName = resumeFile.Name;
+		SetStatus("Resume file selected. Click \"Upload and Process\" to confirm.");
+	}
+
+	/// <summary>
+	/// Attempts to upload the selected resume. Redirects to resumes on success, displays error text on fail.
+	/// </summary>
+	private async Task UploadResume() {
+		if (resumeFile == null) return;
+
+		SetStatus("Uploading resume...");
+		try {
+			// Gets resume file as raw bytes.
+			await using MemoryStream resumeBytes = new();
+			await resumeFile.OpenReadStream(0x_A0_00_00).CopyToAsync(resumeBytes); // Max filesize of 10MiB. This should be plenty for any normal resume.
+
+			// Sends resume bytes to ResumeUploader for API calls.
+			bool success = resumeUploader.Upload(resumeBytes);
+
+			if (success) {
+				SetStatus("Resume uploaded successfully!", StatusType.success);
+			} else {
+				SetStatus("Resume upload failed. (We apologize for this unhelpful error, but this is an early build with WIP failure handling.)", StatusType.failure);
+			}
+		} catch {
+			SetStatus("Resume upload failed due to an exception.", StatusType.failure);
+		}
 	}
 }

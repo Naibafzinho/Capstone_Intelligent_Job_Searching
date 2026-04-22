@@ -2,7 +2,8 @@
 @inherits Redirect
 
 @inject IJSRuntime JSRuntime
-@inject ResumeUploader resumeUploader
+@inject ResumeHandler resumeHandler
+@inject SessionManager sessionManager
 
 <PageTitle>Upload Resume</PageTitle>
 
@@ -54,7 +55,7 @@
 		statusColor = type switch {
 			StatusType.standard => "inherit",
 			StatusType.success => "green",
-			StatusType.failure => "#CC2533",
+			StatusType.failure => "#CC2533", // Failure red.
 			_ => "inherit"
 		};
 	}
@@ -89,8 +90,22 @@
 			await using MemoryStream resumeBytes = new();
 			await resumeFile.OpenReadStream(0x_A0_00_00).CopyToAsync(resumeBytes); // Max filesize of 10MiB. This should be plenty for any normal resume.
 
+			// Create resume record from input data.
+			string? userID = sessionManager.GetUserID();
+			if (userID == null) return; // Cancel upload if somehow session is not authenticated.
+			Resume resume = new(userID, fileName, resumeBytes, DateTime.Today.ToString("d"), new ResumeConfig(
+				IndustryPreferences: ["Banking"],
+				ExperienceLevels: ["Entry-Level"],
+				EmploymentType: ["Full-Time"],
+				ExpectedSalaryRanges: ["$150,000 - $250,000"],
+				Locations: ["Altoona, PA"],
+				RemoteStatus: ["On-Ground"],
+				CompanySizes: ["Medium", "Large"],
+				Tags: [] // No tags.
+			));
+
 			// Sends resume bytes to ResumeUploader for API calls.
-			bool success = resumeUploader.Upload(resumeBytes);
+			bool success = resumeHandler.UploadResume(resume);
 
 			if (success) {
 				SetStatus("Resume uploaded successfully!", StatusType.success);

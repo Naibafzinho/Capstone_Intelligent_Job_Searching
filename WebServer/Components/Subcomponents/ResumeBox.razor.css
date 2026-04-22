@@ -1,6 +1,4 @@
-/* Resume Box */
-
-/* Individual resume card */
+/*
 .resumeBox {
 	width: 95%;
 	max-width: 1000px;
@@ -10,7 +8,6 @@
 	border-radius: 10px;
 }
 
-/* Horizontal row of resume actions inside each card */
 .resumeBox ul {
 	display: flex;
 	align-items: center;
@@ -21,15 +18,12 @@
 	gap: 10px;
 }
 
-/* Each action item aligned centrally */
 .resumeBox li {
 	display: flex;
 	align-items: center;
 }
 
-/* Resume title input */
 
-/* Editable resume name field pushed to the left */
 .resumeTitleInput {
 	margin-right: auto;
 	font-weight: bold;
@@ -39,7 +33,7 @@
 	border: none;
 }
 
-/* Shared styles for all action links and buttons */
+
 ::deep a,
 button {
 	font-size: 16px;
@@ -53,14 +47,160 @@ button {
 	transition: 0.2s ease;
 }
 
-/* Slight scale-up on hover */
+
 ::deep a:hover,
 button:hover {
 	transform: scale(1.05);
 }
 
-/* Delete button stands out in red */
 .deleteBtn {
 	background-color: #ff4d4d;
 	color: white;
+}
+*/
+
+.resumeBox {
+	background: #ffffff;
+	border: 1px solid #e4e8f0;
+	border-radius: 14px;
+	padding: 18px 20px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+	transition: box-shadow 0.2s, transform 0.2s;
+	animation: slideIn 0.3s ease both;
+}
+
+.resumeBox:nth-child(1) { animation-delay: 0.05s; }
+.resumeBox:nth-child(2) { animation-delay: 0.1s; }
+.resumeBox:nth-child(3) { animation-delay: 0.15s; }
+
+@keyframes slideIn {
+	from { opacity: 0; transform: translateY(10px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+
+.resumeBox:hover {
+	box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+	transform: translateY(-1px);
+}
+
+/* Left: doc icon + editable title */
+.resume-left {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex: 1;
+	min-width: 0;
+}
+
+.resume-icon {
+	width: 40px;
+	height: 40px;
+	background: #eef2ff;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	color: #4f7cff;
+}
+
+.resumeTitleInput {
+	font-family: 'Sora', sans-serif;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #0a0a1a;
+	background: transparent;
+	border: none;
+	outline: none;
+	width: 100%;
+	min-width: 0;
+	padding: 4px 6px;
+	border-radius: 6px;
+	transition: background 0.15s;
+}
+
+.resumeTitleInput:hover {
+	background: #f4f6fb;
+}
+
+.resumeTitleInput:focus {
+	background: #eef2ff;
+	color: #4f7cff;
+}
+
+/* Right: action buttons */
+.resume-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.resume-actions a,
+.resume-actions button {
+	font-family: 'Sora', sans-serif;
+	font-size: 0.8rem;
+	font-weight: 500;
+	text-decoration: none;
+	padding: 7px 14px;
+	border-radius: 8px;
+	border: none;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s, transform 0.15s;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+
+/* Analysis */
+.btn-analysis {
+	color: #4f7cff;
+	background: #eef2ff;
+}
+.btn-analysis:hover {
+	background: #dce6ff;
+	transform: translateY(-1px);
+}
+
+/* Matches */
+.btn-matches {
+	color: #0ea87a;
+	background: #e6f9f3;
+}
+.btn-matches:hover {
+	background: #cdf2e6;
+	transform: translateY(-1px);
+}
+
+/* Edit */
+.btn-edit {
+	color: #7a5af8;
+	background: #f0ebff;
+}
+.btn-edit:hover {
+	background: #e2d6ff;
+	transform: translateY(-1px);
+}
+
+/* Delete */
+.btn-delete {
+	color: #e53e3e;
+	background: #fff0f0;
+}
+.btn-delete:hover {
+	background: #ffe0e0;
+	transform: translateY(-1px);
+}
+
+/* Divider between left and actions */
+.resume-divider {
+	width: 1px;
+	height: 32px;
+	background: #e4e8f0;
+	flex-shrink: 0;
 }

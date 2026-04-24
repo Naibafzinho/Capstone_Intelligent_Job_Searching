@@ -8,10 +8,24 @@ internal class SessionManager {
 	private readonly HttpClient httpClient = new();
 	private bool authenticated = false;
 	/// <summary>
+	/// The database ID of the currently authenticated user (hex string). Null if not authenticated.
+	/// </summary>
+	private string? userID;
+	/// <summary>
+	/// The username of the currently authenticated user. Null if not authenticated.
+	/// </summary>
+	private string? username;
+
+	/// <summary>
 	/// Used to check whether the current session is authenticated.
 	/// </summary>
 	/// <returns>True if session is authenticated.</returns>
 	public bool IsAuthenticated() => authenticated;
+	/// <summary>
+	/// Used to get the current session's user's database ID.
+	/// </summary>
+	/// <returns>The database ID of the currently authenticated user, or null if not authenticated.</returns>
+	public string? GetUserID() => userID;
 
 	/// <summary>
 	/// Unauthenticates the current session. Should be followed by a redirect.
@@ -26,7 +40,7 @@ internal class SessionManager {
 	/// <returns>True if authentication succeeds (or already authenticated).</returns>
 	public bool AttemptLogin(string username, string password) {
 		if (authenticated) return true;
-
+		try {
 			// Ask DB if username/password combo is valid.
 			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/login", new {
 				username,
@@ -37,17 +51,37 @@ internal class SessionManager {
 			if (!response.IsSuccessStatusCode) return false;
 
 			// Convert the response content into a JSON object.
-			JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
+			using JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
 
 			// Get the success property if possible.
 			if (responseJSON.RootElement.TryGetProperty("result", out JsonElement successElement)) {
-				// Authenticate and return true if DB confirmed credentials are valid.
-				if (successElement.GetBoolean()) authenticated = true;
-				return true;
+				// If DB confirmed credentials are valid...
+				if (successElement.GetBoolean()) {
+					// Query DB for userID.
+					HttpResponseMessage response2 = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/fetch", new {
+						collection_name = "Users",
+						filter = new { username },
+						projection = new { _id = 1 }
+					}).Result;
+					// If request failed at HTTP level, return false.
+					if (!response.IsSuccessStatusCode) return false;
+					// Convert the response content into a JSON object.
+					using JsonDocument response2JSON = JsonDocument.Parse(response2.Content.ReadAsStringAsync().Result);
+					// Extract the user's database ID.
+					userID = response2JSON.RootElement.GetProperty("result")[0].GetProperty("_id").GetString();
+
+					this.username = username; // Store username.
+					authenticated = true;
+					return true; // Indicate successful login.
+				}
 			}
 
 			// Return false by default to prevent login if DB response fails.
 			return false;
+		} catch {
+			// Handle network errors.
+			return false;
+		}
 	}
 
 	/// <summary>
@@ -76,7 +110,7 @@ internal class SessionManager {
 			if (!response.IsSuccessStatusCode) return false;
 
 			// Convert the response content into a JSON object.
-			JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
+			using JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
 
 			// Get the success property if possible.
 			if (responseJSON.RootElement.TryGetProperty("result", out JsonElement resultElement) && resultElement.TryGetProperty("success", out JsonElement successElement)) {
@@ -93,12 +127,6 @@ internal class SessionManager {
 			// Handle network errors.
 			return false;
 		}
-
-		/*
-		bool success = FakeAPICallSignup(email, username, password);
-		if (success) authenticated = true;
-		return success;
-		*/
 	}
 
 	// Temporary test functions. Simulates a single account with username "admin", password "passwd", and an arbitrary email.

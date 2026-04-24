@@ -20,9 +20,10 @@ pprint.pprint(test)
 
 db.close()
 """
+import base64
 
 import httpx
 
-response = httpx.post("http://localhost:8000/updateValue", json={"collection_name": "Users", "flt": {"username": "Iannn"}, "attribute": "passwordHash", "new_value": "lolll"}, timeout=15)
+response = httpx.post("http://localhost:8000/insertEntry", json={"collection_name": "Resumes", "entry": {"filename": "resumeMatchTest.pdf", "userId": "69b76e623620734883622265", "data": base64.b64encode(b"base64_encoded_data").decode(), "uploadDate": "0284357", "isActive": False}}, timeout=15)
 
 print(response.json())

@@ -96,7 +96,7 @@ class ResumeScheme(BaseModel):
     companySizeConfig: Optional[List[str]] = [] #companySize
     tags: Optional[List[str]] = []
     extractedKeywords: Optional[List[str]] = []
-    atsScore: Optional[int] = ""
+    atsScore: Optional[int] = 0
 
     @field_validator(
         'locationConfig',

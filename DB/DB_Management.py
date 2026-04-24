@@ -72,6 +72,8 @@ class DBManagement:
         # Returns: "abc123..." on success, or None on failure
         """
         
+        Entry = self.prepare_entry(Entry, collection_name)
+
         if collection_name == "Resumes":
             userId = Entry.get("userId")
             if userId is None:
@@ -355,6 +357,50 @@ class DBManagement:
                     pass
         return out
     
+    def prepare_entry(self, entry: Dict[str, Any], collection_name: str) -> Dict[str, Any]:
+        import base64
+        from bson import ObjectId
+
+        entry = dict(entry)
+
+        # -----------------------------
+        # Convert top-level ObjectIds
+        # -----------------------------
+        if collection_name in ["Resumes", "JobPostings"]:
+            if "userId" in entry and isinstance(entry["userId"], str):
+                try:
+                    entry["userId"] = ObjectId(entry["userId"])
+                except Exception:
+                    raise PermanentDBError("Invalid userId format")
+
+        # -----------------------------
+        # Convert binary data (Resumes)
+        # -----------------------------
+        if collection_name == "Resumes":
+            if "data" in entry and isinstance(entry["data"], str):
+                try:
+                    entry["data"] = base64.b64decode(entry["data"])
+                except Exception:
+                    raise PermanentDBError("Invalid base64 data")
+
+        # -----------------------------
+        # Convert nested matches (JobPostings)
+        # -----------------------------
+        if collection_name == "JobPostings":
+            matches = entry.get("matches")
+
+            if isinstance(matches, list):
+                for match in matches:
+                    if isinstance(match, dict):
+                        # resumeId -> ObjectId
+                        if "resumeId" in match and isinstance(match["resumeId"], str):
+                            try:
+                                match["resumeId"] = ObjectId(match["resumeId"])
+                            except Exception:
+                                raise PermanentDBError("Invalid resumeId format in matches")
+
+        return entry
+
     def get_Scheme(self, collection_name: str):
         #Return the Pydantic scheme class corresponding to the collection name.
         match collection_name:

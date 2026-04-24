@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from DB_Management import DBManagement
 from queue_manager import QueueManager
 from pydanticSchemes import FetchRequestScheme, InsertEntryScheme, UpdateValueScheme, DeleteEntryScheme, LoginScheme, EntryExistScheme, AddMatchesScheme
+from bson import ObjectId
 
 # run: uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 

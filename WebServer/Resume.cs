@@ -5,13 +5,13 @@ namespace JobRush;
 /// </summary>
 /// <param name="UserID">The database ID of this resume's associated user (hex string).</param>
 /// <param name="Filename">The name of the resume.</param>
-/// <param name="FileBytes">The resume file as binary data.</param>
+/// <param name="FileBytes64">The resume file as a base64 binary data string.</param>
 /// <param name="UploadDate">The date of the resume upload.</param>
 /// <param name="Config">The resume's job match configuration data.</param>
 internal record Resume(
 	string UserID,
 	string Filename,
-	MemoryStream FileBytes,
+	string FileBytes64,
 	string UploadDate,
 	ResumeConfig Config
 );

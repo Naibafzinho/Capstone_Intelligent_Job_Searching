@@ -86,14 +86,18 @@
 
 		SetStatus("Uploading resume...");
 		try {
-			// Gets resume file as raw bytes.
+			// Gets resume file as raw byte stream.
 			await using MemoryStream resumeBytes = new();
 			await resumeFile.OpenReadStream(0x_A0_00_00).CopyToAsync(resumeBytes); // Max filesize of 10MiB. This should be plenty for any normal resume.
+
+			// Convert byte stream into a base64 string.
+			resumeBytes.Position = 0; // Ensures byte stream is read from the beginning. (Technically redunant here, but good to keep incase of code additions.)
+			string resumeBytes64 = Convert.ToBase64String(resumeBytes.ToArray());
 
 			// Create resume record from input data.
 			string? userID = sessionManager.GetUserID();
 			if (userID == null) return; // Cancel upload if somehow session is not authenticated.
-			Resume resume = new(userID, fileName, resumeBytes, DateTime.Today.ToString("d"), new ResumeConfig(
+			Resume resume = new(userID, fileName, resumeBytes64, DateTime.Today.ToString("d"), new ResumeConfig(
 				IndustryPreferences: ["Banking"],
 				ExperienceLevels: ["Entry-Level"],
 				EmploymentType: ["Full-Time"],

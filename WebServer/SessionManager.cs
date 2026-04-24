@@ -40,6 +40,7 @@ internal class SessionManager {
 	/// <returns>True if authentication succeeds (or already authenticated).</returns>
 	public bool AttemptLogin(string username, string password) {
 		if (authenticated) return true;
+		
 		try {
 			// Ask DB if username/password combo is valid.
 			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/login", new {

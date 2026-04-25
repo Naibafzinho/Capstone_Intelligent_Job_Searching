@@ -8,7 +8,7 @@ namespace JobRush;
 /// <param name="FileBytes64">The resume file as a base64 binary data string.</param>
 /// <param name="UploadDate">The date of the resume upload.</param>
 /// <param name="Config">The resume's job match configuration data.</param>
-internal record Resume(
+internal record class Resume(
 	string UserID,
 	string Filename,
 	string FileBytes64,
@@ -27,7 +27,7 @@ internal record Resume(
 /// <param name="RemoteStatus">The resume owner's remote work preference.</param>
 /// <param name="CompanySizes">The resume owner's desired company size(s).</param>
 /// <param name="Tags">A set of misc. strings for job match indexing and filtering.</param>
-internal record ResumeConfig (
+internal record class ResumeConfig (
 	string[] IndustryPreferences,
 	string[] ExperienceLevels,
 	string[] EmploymentType,

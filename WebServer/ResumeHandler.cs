@@ -10,13 +10,7 @@ internal class ResumeHandler(SessionManager sessionManager) {
 	/// <summary>
 	/// The currently authenticated user's resumes.
 	/// </summary>
-	private readonly List<Resume> resumes = [];
-
-	/// <summary>
-	/// Gets a list of the current user's resumes.
-	/// </summary>
-	/// <returns>A list containing the user's current resumes.</returns>
-	public List<Resume> GetResumes() => new(resumes); // Returns a copy to prevent modification.
+	public List<Resume> Resumes { get; } = [];
 
 	/// <summary>
 	/// Uploads a resume to the database and notifies the preprocessor node.
@@ -51,7 +45,7 @@ internal class ResumeHandler(SessionManager sessionManager) {
 			if (!response.IsSuccessStatusCode) {
 				return false;
 			} else {
-				resumes.Add(resume); // Add new resume to this session's resume list.
+				Resumes.Add(resume); // Add new resume to this session's resume list.
 				// TODO: Notify preprocessor of new resume, tell it to fetch from DB and preprocess.
 				return true; // Upload successful.
 			}

@@ -5,8 +5,10 @@ namespace JobRush;
 /// Handles user authentication. This class is unique for each client connection.
 /// </summary>
 internal class SessionManager {
+	// Injected Dependencies
 	private readonly HttpClient httpClient = new();
 	private bool authenticated = false;
+
 	/// <summary>
 	/// The database ID of the currently authenticated user (hex string). Null if not authenticated.
 	/// </summary>
@@ -17,12 +19,12 @@ internal class SessionManager {
 	private string? username;
 
 	/// <summary>
-	/// Used to check whether the current session is authenticated.
+	/// Checks whether the current session is authenticated.
 	/// </summary>
 	/// <returns>True if session is authenticated.</returns>
 	public bool IsAuthenticated() => authenticated;
 	/// <summary>
-	/// Used to get the current session's user's database ID.
+	/// Gets the current session's user's database ID.
 	/// </summary>
 	/// <returns>The database ID of the currently authenticated user, or null if not authenticated.</returns>
 	public string? GetUserID() => userID;

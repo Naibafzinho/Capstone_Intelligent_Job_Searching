@@ -90,8 +90,27 @@
 			await using MemoryStream resumeBytes = new();
 			await resumeFile.OpenReadStream(0x_A0_00_00).CopyToAsync(resumeBytes); // Max filesize of 10MiB. This should be plenty for any normal resume.
 
+			// Validate filetype is TXT, DOC(X), or PDF. (This is far from perfect, but it should work well enough for now.)
+			FileType fileType;
+			if (Path.GetExtension(resumeFile.Name).ToLower() == ".txt") {
+				fileType = FileType.text; // Check TXT files by extension due to lack of guaranteed header.
+			} else {
+				resumeBytes.Position = 0; // Ensures byte stream is read from the beginning.
+				byte[] headerBytes = new byte[4];
+				resumeBytes.Read(headerBytes, 0, headerBytes.Length); // Get the first 4 bytes of the resume file.
+				fileType = headerBytes switch {
+					[0x50, 0x4B, 0x03, 0x04] => FileType.docx,	// Check for DOCX file header bytes (50 4B 03 04). WARNING: THIS ALSO ACCEPTS OTHER OFFICE FILETYPES SUCH AS XLSX.
+					[0xD0, 0xCF, 0x11, 0xE0] => FileType.doc,	// Check for DOC file header bytes (D0 CF 11 E0).
+					[0x25, 0x50, 0x44, 0x46] => FileType.pdf,	// Check for PDF file header bytes (25 50 44 46). WARNING: THIS MAY REJECT SOME PDFS WITH GARBAGE BEFORE "%PDF".
+					_ => FileType.other // Assume other filetype if extension not ".txt" and header bytes don't match DOC(X) or PDF.
+				};
+			}
+			if (fileType == FileType.other) {
+				SetStatus("Invalid filetype selected. Please upload a txt, docx, doc, or pdf file.", StatusType.failure);
+				return;
+			}
+
 			// Convert byte stream into a base64 string.
-			resumeBytes.Position = 0; // Ensures byte stream is read from the beginning. (Technically redunant here, but good to keep incase of code additions.)
 			string resumeBytes64 = Convert.ToBase64String(resumeBytes.ToArray());
 
 			// Create resume record from input data.
@@ -112,7 +131,7 @@
 			bool success = resumeHandler.UploadResume(resume);
 
 			if (success) {
-				SetStatus("Resume uploaded successfully!", StatusType.success);
+				SetStatus("Resume uploaded successfully! Go to the Resumes page to view results or edit job search parameters.", StatusType.success);
 			} else {
 				SetStatus("Resume upload failed. (We apologize for this unhelpful error, but this is an early build with WIP failure handling.)", StatusType.failure);
 			}
@@ -120,4 +139,6 @@
 			SetStatus("Resume upload failed due to an exception.", StatusType.failure);
 		}
 	}
+
+	enum FileType { other, text, docx, doc, pdf }
 }

@@ -4,14 +4,16 @@ namespace JobRush;
 /// Stores a user's resume file with job match configuration.
 /// </summary>
 /// <param name="UserID">The database ID of this resume's associated user (hex string).</param>
+/// <param name="ResumeID">The database ID of this resume (hex string).</param>
 /// <param name="Filename">The name of the resume.</param>
 /// <param name="FileBytes64">The resume file as a base64 binary data string.</param>
 /// <param name="UploadDate">The date of the resume upload.</param>
 /// <param name="Config">The resume's job match configuration data.</param>
 internal record class Resume(
 	string UserID,
+	string? ResumeID, // Null if DB ID unknown, such as during initial upload.
 	string Filename,
-	string FileBytes64,
+	string? FileBytes64, // Null when retrieved from DB, since raw file is not needed for display.
 	string UploadDate,
 	ResumeConfig Config
 );

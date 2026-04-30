@@ -116,7 +116,7 @@
 			// Create resume record from input data.
 			string? userID = sessionManager.GetUserID();
 			if (userID == null) return; // Cancel upload if somehow session is not authenticated.
-			Resume resume = new(userID, fileName, resumeBytes64, DateTime.Today.ToString("d"), new ResumeConfig(
+			Resume resume = new(userID, null, fileName, resumeBytes64, DateTime.Today.ToString("d"), new ResumeConfig(
 				IndustryPreferences: ["Banking"],
 				ExperienceLevels: ["Entry-Level"],
 				EmploymentType: ["Full-Time"],

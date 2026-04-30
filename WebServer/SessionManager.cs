@@ -4,9 +4,11 @@ namespace JobRush;
 /// <summary>
 /// Handles user authentication. This class is unique for each client connection.
 /// </summary>
-internal class SessionManager {
+internal class SessionManager(ResumeDisplayer resumeDisplayer) {
 	// Injected Dependencies
 	private readonly HttpClient httpClient = new();
+	private readonly ResumeDisplayer resumeDisplayer = resumeDisplayer;
+
 	private bool authenticated = false;
 
 	/// <summary>
@@ -66,14 +68,62 @@ internal class SessionManager {
 						filter = new { username },
 						projection = new { _id = 1 }
 					}).Result;
-					// If request failed at HTTP level, return false.
-					if (!response.IsSuccessStatusCode) return false;
-					// Convert the response content into a JSON object.
+
+					// If second request failed at HTTP level, return false.
+					if (!response2.IsSuccessStatusCode) return false;
+
+					// Convert the second response content into a JSON object.
 					using JsonDocument response2JSON = JsonDocument.Parse(response2.Content.ReadAsStringAsync().Result);
-					// Extract the user's database ID.
+
+					// Extract and record the user's database ID.
 					userID = response2JSON.RootElement.GetProperty("result")[0].GetProperty("_id").GetString();
 
-					this.username = username; // Store username.
+					// Retrieve the user's existing resumes from the DB, if any.
+					HttpResponseMessage response3 = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/fetch", new {
+						collection_name = "Resumes",
+						filter = new { userId = userID },
+						projection = new { // 0 skips value in query result.
+							userId = 0,
+							data = 0,
+							isActive = 0,
+							extractedKeywords = 0,
+							atsScore = 0
+						}
+					}).Result;
+
+					// If third request failed at HTTP level, return false.
+					if (!response3.IsSuccessStatusCode) return false;
+
+					// Convert the third response content into a JSON object.
+					using JsonDocument response3JSON = JsonDocument.Parse(response3.Content.ReadAsStringAsync().Result);
+
+					// Extract the resume elements from the response JSON.
+					List<JsonElement> returnedResumes = new(response3JSON.RootElement.GetProperty("result").EnumerateArray());
+
+					// Convert each resume element into an object and store them in ResumeDisplayer.
+					foreach (JsonElement element in returnedResumes) {
+						string GetSubelementString(string subelementName) => element.GetProperty(subelementName).GetString();
+						string[] GetSubelementArray(string subelementName) => element.GetProperty(subelementName).EnumerateArray().Select(x => x.GetString()).ToArray();
+						resumeDisplayer.Resumes.Add(new Resume(
+							UserID: userID,
+							ResumeID: GetSubelementString("_id"),
+							Filename: GetSubelementString("filename"),
+							FileBytes64: null, // Raw file is not needed for display.
+							UploadDate: GetSubelementString("uploadDate"),
+							new ResumeConfig(
+								IndustryPreferences: GetSubelementArray("industryConfig"),
+								ExperienceLevels: GetSubelementArray("experienceLevelConfig"),
+								EmploymentType: GetSubelementArray("jobTypeConfig"),
+								ExpectedSalaryRanges: GetSubelementArray("expectedSalaryConfig"),
+								Locations: GetSubelementArray("locationConfig"),
+								RemoteStatus: GetSubelementArray("remoteConfig"),
+								CompanySizes: GetSubelementArray("companySizeConfig"),
+								Tags: GetSubelementArray("tags")
+							)
+						));
+					}
+
+					this.username = username; // Record current user's username.
 					authenticated = true;
 					return true; // Indicate successful login.
 				}

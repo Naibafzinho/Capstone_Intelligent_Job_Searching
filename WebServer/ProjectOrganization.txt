@@ -3,6 +3,8 @@ This file provides a summary of this project's file structure.
 JobRush
  ├─ Program.cs: This is the program entry point. No edits are likely needed here.
  ├─ SessionManager.cs: This is a layer-2 component for handling sessions. Since it's static, it is shared across all sessions.
+ ├─ ResumeHandler.cs: This is a layer-2 component for uploading and editing resumes.
+ ├─ ResumeDisplayer.cs: This is a layer-2 component for storing the current user's resumes for display.
  ├─ [Other Files]: Configuration files, don't worry about these.
  ├─ Properties:
  │   └─ launchSettings.json: Debugger configuration file.

@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject NavigationManager navigationManager
 @inject SessionManager sessionManager
+@inject ResumeDisplayer resumeDisplayer
 
 <PageTitle>Home</PageTitle>
 
@@ -8,7 +9,11 @@
 	// Redirect to login or home page based on authentication.
 	protected override void OnInitialized()	{
 		if (sessionManager.IsAuthenticated()) {
-			navigationManager.NavigateTo("/upload");
+			if (resumeDisplayer.GetResumes().Length > 0) {
+				navigationManager.NavigateTo("/resumes");
+			} else {
+				navigationManager.NavigateTo("/upload");
+			}
 			// TODO: Redirect to resumes page instead if current user has 1+ resumes.
 		} else {
 			navigationManager.NavigateTo("/login");

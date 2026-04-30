@@ -49,19 +49,11 @@
 
 		</div>
 	</nav>
-	<!--<nav class="navbar">
-		<ul>
-			<li><img src="resumelogo.png" alt="Logo"></li>
-			<li><NavLink href="/upload">Upload</NavLink></li>
-			<li><NavLink href="/resumes">Resumes</NavLink></li>
-			<li><NavLink @onclick=Logout>Logout</NavLink></li>
-		</ul>
-	</nav>-->
 </div>
 
 @code {
 	private void Logout() {
 		sessionManager.Logout();
-		navigationManager.NavigateTo("/login");
+		navigationManager.NavigateTo("/login", true); // True forces full page reload, resetting websocket and thus session.
 	}
 }

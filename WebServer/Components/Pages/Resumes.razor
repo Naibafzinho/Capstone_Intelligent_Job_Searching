@@ -1,5 +1,8 @@
 @page "/resumes"
 @inherits Redirect
+@implements IDisposable
+
+@inject ResumeDisplayer resumeDisplayer
 
 <PageTitle>Resumes</PageTitle>
 
@@ -10,7 +13,18 @@
 <div class="resumes-wrapper">
 	<!--Resume container to hold each resume-->
 	<div class="resumeContainer">
-		<ResumeBox Name="Resume1" />
-		<ResumeBox Name="Resume2" />
+		@foreach (Resume resume in resumeDisplayer.GetResumes()) { <ResumeBox Name=@resume.Filename /> }
 	</div>
 </div>
+
+@code {
+	protected override void OnInitialized() => resumeDisplayer.ResumeListUpdated += Rerender;
+	public void Dispose() => resumeDisplayer.ResumeListUpdated -= Rerender;
+
+	/// <summary>
+	/// Re-renders this component if resume list is updated.
+	/// </summary>
+	private void Rerender() {
+		_ = InvokeAsync(StateHasChanged);
+	}
+}

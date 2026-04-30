@@ -63,7 +63,7 @@ internal class ResumeHandler(SessionManager sessionManager, ResumeDisplayer resu
 			string resumeID = response2JSON.RootElement.GetProperty("result")[0].GetProperty("_id").GetString();
 
 			// Add new resume to this session's resume list, including the fetched DB ID.
-			resumeDisplayer.Resumes.Add(resume with { ResumeID = resumeID });
+			resumeDisplayer.AddResume(resume with { ResumeID = resumeID });
 
 			// TODO: Notify preprocessor of new resume, tell it to fetch from DB and preprocess.
 				// resumeID (string) variable should be sent to preprocessor so it can locate the resume in the DB.

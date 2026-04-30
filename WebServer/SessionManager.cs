@@ -104,7 +104,7 @@ internal class SessionManager(ResumeDisplayer resumeDisplayer) {
 					foreach (JsonElement element in returnedResumes) {
 						string GetSubelementString(string subelementName) => element.GetProperty(subelementName).GetString();
 						string[] GetSubelementArray(string subelementName) => element.GetProperty(subelementName).EnumerateArray().Select(x => x.GetString()).ToArray();
-						resumeDisplayer.Resumes.Add(new Resume(
+						resumeDisplayer.AddResume(new Resume(
 							UserID: userID,
 							ResumeID: GetSubelementString("_id"),
 							Filename: GetSubelementString("filename"),

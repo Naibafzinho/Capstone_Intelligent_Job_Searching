@@ -47,7 +47,8 @@ internal class ResumeHandler(SessionManager sessionManager, ResumeDisplayer resu
 				collection_name = "Resumes",
 				filter = new { // Hopefully this should filter for the exact uploaded resume, since we don't have the ID yet...
 					userId = resume.UserID,
-					data = resume.FileBytes64
+					filename = resume.Filename,
+					uploadDate = resume.UploadDate
 				},
 				projection = new { _id = 1 }
 			}).Result;

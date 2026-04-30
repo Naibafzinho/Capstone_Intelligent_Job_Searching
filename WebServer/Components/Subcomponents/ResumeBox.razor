@@ -1,3 +1,6 @@
+@inject ResumeHandler resumeHandler
+@inject ResumeDisplayer resumeDisplayer
+
 <div class="resumeBox">
 	<div class="resume-left">
 		<div class="resume-icon">
@@ -33,12 +36,25 @@
 
 @code {
 	/// <summary>
+	/// The database ID of this resume.
+	/// </summary>
+	[Parameter]
+	public required string ID { get; set; }
+
+	/// <summary>
 	/// The display name for this resume.
 	/// </summary>
 	[Parameter]
 	public required string Name { get; set; }
-	
+
+	/// <summary>
+	/// Deletes this resume from the database and locally.
+	/// </summary>
 	private void DeleteResume() {
-		// TODO: Delete this component's associated resume. (After confirmation popup.)
+		// TODO: Add confirmation popup.
+		Resume? thisResume = resumeDisplayer.GetResumeByID(ID);
+		if (thisResume == null) return;
+		bool success = resumeHandler.DeleteResume(thisResume);
+		// TODO: Do something if success == false.
 	}
 }

@@ -29,7 +29,7 @@ internal record class Resume(
 /// <param name="RemoteStatus">The resume owner's remote work preference.</param>
 /// <param name="CompanySizes">The resume owner's desired company size(s).</param>
 /// <param name="Tags">A set of misc. strings for job match indexing and filtering.</param>
-internal record class ResumeConfig (
+internal record class ResumeConfig(
 	string[] IndustryPreferences,
 	string[] ExperienceLevels,
 	string[] EmploymentType,

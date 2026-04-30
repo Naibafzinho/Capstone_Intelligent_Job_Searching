@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace JobRush;
 /// <summary>
-/// Handles resume uploads and edits. This class is unique for each client connection.
+/// Handles resume uploads, edits, and deletion. This class is unique for each client connection.
 /// </summary>
 internal class ResumeHandler(SessionManager sessionManager, ResumeDisplayer resumeDisplayer) {
 	// Injected Dependencies
@@ -76,8 +76,48 @@ internal class ResumeHandler(SessionManager sessionManager, ResumeDisplayer resu
 	}
 	
 	public bool EditResume(Resume resume) {
+		if (!sessionManager.IsAuthenticated()) return false; // Fail if a resume is somehow edited before authentication.
+
 		// TODO: Update the given resume on the DB, return true if successfull.
+
 		// TODO: Notify preprocessor (or processor?? whatever component uses configuration like expected salary) to re-evaluate resume, similar to the call in UploadResume.
-		return false;
+
+		return true; // Edit successful.
+	}
+
+	/// <summary>
+	/// Removes a specified resume from the DB.
+	/// </summary>
+	/// <param name="resume">The local representation of the resume to remove.</param>
+	/// <returns>True if successful.</returns>
+	public bool DeleteResume(Resume resume) {
+		if (!sessionManager.IsAuthenticated()) return false; // Fail if a resume deletion is somehow requested before authentication.
+		if (resume.ResumeID == null) return false; // Resumes require known DB IDs to properly delete. (This should only be null during upload process.)
+
+		try {
+			// Attempt to remove resume from DB.
+			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/deleteEntry", new {
+				collection_name = "Resumes",
+				filter = new {
+					userId = resume.UserID, // This should be redundant, but it could protect other users from glitches.
+					_id = resume.ResumeID
+				}
+			}).Result;
+
+			// If request failed at HTTP level, return false.
+			if (!response.IsSuccessStatusCode) return false;
+
+			// If DB deletion errored, return false.
+			using JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
+			if (!responseJSON.RootElement.GetProperty("result").GetProperty("success").GetBoolean()) return false;
+
+			// Remove resume from local list (and update applicable UI).
+			resumeDisplayer.RemoveResume(resume.ResumeID);
+
+			return true; // Deletion successful.
+		} catch {
+			// Handle network errors.
+			return false;
+		}
 	}
 }

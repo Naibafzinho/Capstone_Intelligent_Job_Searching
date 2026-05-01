@@ -20,7 +20,10 @@
 </div>
 
 @code {
-	protected override void OnInitialized() => resumeDisplayer.ResumeListUpdated += Rerender;
+	protected override void OnInitialized() {
+		base.OnInitialized();
+		resumeDisplayer.ResumeListUpdated += Rerender;
+	}
 	public void Dispose() => resumeDisplayer.ResumeListUpdated -= Rerender;
 
 	/// <summary>

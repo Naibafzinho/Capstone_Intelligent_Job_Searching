@@ -5,6 +5,6 @@ The following code locations require API calls to the (pre)processor node(s):
  More information is commented at the above locations.
 
 Edit Functionality (Final DB <-> Webserver Integration):
- - Resume edit page display and functionality (use edit function in ResumeHandler, see below).
- - Add edit resume API calls to ResumeHandler component (update DB then reprocess as necessary).
- - Add config input and functionality to resume upload page.
+ - Components/Pages/Edit.razor: Resume edit page display and functionality (use edit function in ResumeHandler, see below).
+ - ResumeHandler.cs: Add edit resume API calls to ResumeHandler component (update DB then reprocess as necessary).
+ - Components/Pages.Upload.razor: Add config input and functionality to resume upload page.

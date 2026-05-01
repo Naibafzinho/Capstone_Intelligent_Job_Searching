@@ -1,99 +1,56 @@
-@page "/matches"
+@page "/matches/{targetResumeID}"
 @inherits Redirect
 
 <PageTitle>Matches</PageTitle>
 
 <div class="matches-wrapper">
-
-	<main class="page-content">
-
-		<div class="job-card">
-
-			<!--Company and job title-->
-			<div class="job-top">
-				<div class="company-logo">@employerName</div>
-				<div class="job-title-block">
-					<h1 class="job-title">@jobTitle</h1>
-					<p class="job-company">
-						<NavLink href=@employerLink target="_blank">@employerName</NavLink> &nbsp;·&nbsp; Posted @postedDaysAgo days ago on @postOriginalSite
-					</p>
-				</div>
-
-				<!--Match score percentage-->
-				<div class="match-score">
-					<ProgressBarCircle Fill=@matchRatio />
-					<span class="match-score-label">match</span>
-				</div>
-			</div>
-
-			<!--Tags for location, salary, industry, etc-->
-			<div class="tags">
-				<span class="tag tag-location">📍 @tags["location"]</span>
-				<span class="tag tag-type">@tags["employmentType"]</span>
-				<span class="tag tag-remote">@tags["remoteStatus"]</span>
-				<span class="tag tag-industry">@tags["field"]</span>
-				<span class="tag tag-salary">@tags["salary"]</span>
-			</div>
-
-			<hr class="divider">
-
-			<!--Job description-->
-			<p class="section-label">About the role</p>
-			<p class="job-description">@description</p>
-
-			<hr class="divider">
-
-			<!--skills from job posting-->
-			<p class="section-label">Skills</p>
-			<p class="skills-note">Skills highlighted in orange are gaps based on your resume</p>
-			<div class="skills">
-				@foreach (string skill in skillsMatched) {
-					<span class="skill">@skill</span>
-				}
-				@foreach (string skill in skillsMissing) {
-					<span class="skill skill-missing">@skill</span>
-				}
-			</div>
-
-			<div class="job-actions">
-				<button class="btn btn-secondary" @onclick=SaveJob>Save job</button>
-				<NavLink class="btn btn-secondary" href=@jobLink target="_blank" role="button">View original posting</NavLink>
-			</div>
-
-		</div>
-
-	</main>
-
+	@foreach (JobListing job in GetResumeJobs(targetResumeID)) {
+		<JobCard jobListing=job />
+	}
 </div>
 
 @code {
-	private string jobTitle = "Senior Software Engineer";
-	private string employerName = "PNC";
-	private string employerLink = "https://www.pnc.com/en/personal-banking.html";
-	private int postedDaysAgo = 2;
-	private string postOriginalSite = "LinkedIn";
-	private float matchRatio = 0.8f;
-	private Dictionary<string, string> tags = new(){
-		["location"] = "Pittsburgh, PA",
-		["employmentType"] = "Full-time",
-		["remoteStatus"] = "Hybrid",
-		["field"] = "Technology",
-		["salary"] = "$130k – $160k / yr"
-	};
-	private string description = @"At PNC, our people are our greatest differentiator and competitive advantage in the markets we serve.
-										We are all united in delivering the best experience for our customers. We work together each day to
-										foster an inclusive workplace culture where all of our employees feel respected, valued and have an
-										opportunity to contribute to the company’s success. As a Senior Angular Developer within PNC's Lending
-										Tech organization, you will be based in Dallas, TX, Pittsburgh, PA, Strongsville, OH or Birmingham, AL.
+	/// <summary>
+	/// The database ID of the resume to display matches for on this page.
+	/// </summary>
+	[Parameter]
+	public string? targetResumeID { get; set; }
 
-										Senior Angular (or equivalent front‑end) Developer to support our upcoming initiatives. The ideal
-										candidate should have extensive experience building scalable, high‑performance web applications and
-										be comfortable driving technical decisions within a modern front‑end architecture.";
-	private string[] skillsMatched = { "Figma", "Design systems", "User research", "Prototyping", "Mobile (iOS / Android)" };
-	private string[] skillsMissing = { "Accessibility (WCAG)", "Data visualization" };
-	private string jobLink = "https://example.com/";
+	/// <summary>
+	/// The job listings displayed on this page.
+	/// </summary>
+	public required JobListing[] jobListings { get; set; }
 
-	private void SaveJob() {
-		// TODO: Save this job posting to [where?].
+	/// <summary>
+	/// Gets the job listings associated with the given resumeID.
+	/// </summary>
+	/// <param name="resumeID">The database ID to filter job listings by.</param>
+	/// <returns>An array of JobListings associated with the target resume.</returns>
+	private JobListing[] GetResumeJobs(string? resumeID) {
+		// TODO: Return an array of JobListings for the resume with the database ID == targetResumeID.
+			// TODO: Query the DB JobPostings table, filter by job postings which have the provided resumeID (NOT JOB POSTING ID).
+			// (At the time of these comments, the DB JobPostings table does not contain an ID for (or any kind of link to) the associated resume.)
+		
+		bool resumeHasJobs = true; // Set this to false if queried resume has no matched jobs.
+
+		if (resumeHasJobs) {
+			return [new JobListing( // Replace these values with the return array.
+				Title: "title",
+				CompanyName: "companyname",
+				DatePosted: "dateposted",
+				OriginalPostingSite: "ogpostsite",
+				OriginalPostingLink: "ogpostlink",
+				Industries: ["industry"],
+				ExperienceLevels: ["experience"],
+				EmploymentTypes: ["employmenttype"],
+				SalaryRanges: ["salary"],
+				Locations: ["location"],
+				RemoteStatuses: ["remote"],
+				CompanySizes: ["companysize"],
+				Description: "description"
+			)];
+		} else {
+			return []; // Return empty array if resume has no associated jobs.
+		}
 	}
 }

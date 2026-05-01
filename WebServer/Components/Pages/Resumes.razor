@@ -14,7 +14,7 @@
 	<!--Resume container to hold each resume-->
 	<div class="resumeContainer">
 		@foreach (Resume resume in resumeDisplayer.GetResumes()) { // Generates a ResumeBox component for each resume.
-			<ResumeBox ID=@resume.ResumeID Name=@resume.Filename />
+			<ResumeBox targetResumeID=@resume.ResumeID Name=@resume.Filename />
 		}
 	</div>
 </div>

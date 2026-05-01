@@ -1,0 +1,10 @@
+Resume (Pre)Processor Integration:
+The following code locations require API calls to the (pre)processor node(s):
+ - ResumeHandler.cs, line 68: A resume was just successfully uploaded to the DB. Send the preprocessor the resume's ID and tell it to fetch the resume from the DB.
+ - Components/Pages/Matches.razor, line 30: This needs filled in but the DB doesn't currently store the required info. See function comments.
+ More information is commented at the above locations.
+
+Edit Functionality (Final DB <-> Webserver Integration):
+ - Resume edit page display and functionality (use edit function in ResumeHandler, see below).
+ - Add edit resume API calls to ResumeHandler component (update DB then reprocess as necessary).
+ - Add config input and functionality to resume upload page.

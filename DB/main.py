@@ -43,11 +43,7 @@ async def entry_exist(request: EntryExistScheme):
     )
     return {"result": count}
 
-
-# -----------------------------
-# DIRECT DB WRITES (NO REDIS)
-# -----------------------------
-
+#DB writes
 @app.post("/insertEntry")
 async def insert_entry(request: InsertEntryScheme):
     try:
@@ -56,7 +52,7 @@ async def insert_entry(request: InsertEntryScheme):
             collection_name=request.collection_name
         )
 
-        # ✅ NEW: trigger extractor automatically for resumes
+        #Trigger extractor automatically for resumes
         if request.collection_name == "Resumes":
             try:
                 requests.post(
@@ -112,9 +108,8 @@ async def add_matches(request: AddMatchesScheme):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# -----------------------------
-# ANALYZE ENDPOINT
-# -----------------------------
+
+#Analyzed Endpoint
 @app.post("/analyze/{resume_id}")
 async def analyze_resume(resume_id: str):
     try:

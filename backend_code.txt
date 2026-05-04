@@ -1,0 +1,2027 @@
+﻿===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\check_services.py =====
+#!/usr/bin/env python3
+"""
+Service health check utility.
+Verifies that MongoDB, Redis, and all services are running correctly.
+"""
+
+import redis
+import time
+from dotenv import load_dotenv
+from DB_Management import DBManagement
+
+def check_redis():
+    """Check if Redis is running"""
+    print("\nChecking Redis...")
+    try:
+        r = redis.Redis(host='localhost', port=6379, db=0)
+        r.ping()
+        print("âœ“ Redis is running on localhost:6379")
+        return True
+    except redis.exceptions.ConnectionError as e:
+        print(f"âœ— Redis connection failed: {e}")
+        return False
+
+def check_mongodb():
+    """Check if MongoDB is running"""
+    print("\nChecking MongoDB...")
+    try:
+        db = DBManagement()
+        db.client.admin.command('ping')
+        print("âœ“ MongoDB is running")
+        print(f"  Database: TestDB")
+        
+        collections = db.db.list_collection_names()
+        print(f"  Collections: {', '.join(collections) if collections else 'None'}")
+        return True
+    except Exception as e:
+        print(f"âœ— MongoDB connection failed: {e}")
+        return False
+
+def check_db_api(port=8000):
+    """Check if DB API is running"""
+    print(f"\nChecking DB API on port {port}...")
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('127.0.0.1', port))
+    sock.close()
+    
+    if result == 0:
+        print(f"âœ“ DB API is running on http://127.0.0.1:{port}")
+        return True
+    else:
+        print(f"âœ— DB API is not running on port {port}")
+        print(f"  Start it with: uvicorn main:app --host 127.0.0.1 --port {port} --reload")
+        return False
+
+def check_webserver(port=5168):
+    """Check if WebServer is running"""
+    print(f"\nChecking WebServer on port {port}...")
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('127.0.0.1', port))
+    sock.close()
+    
+    if result == 0:
+        print(f"âœ“ WebServer is running on http://localhost:{port}")
+        return True
+    else:
+        print(f"âœ— WebServer is not running on port {port}")
+        print(f"  Start it with: dotnet watch run")
+        return False
+
+def main():
+    load_dotenv()
+    
+    print("=" * 50)
+    print("JobRush Service Health Check")
+    print("=" * 50)
+    
+    redis_ok = check_redis()
+    mongo_ok = check_mongodb()
+    api_ok = check_db_api()
+    web_ok = check_webserver()
+    
+    print("\n" + "=" * 50)
+    print("Summary:")
+    print("=" * 50)
+    print(f"Redis:     {'âœ“' if redis_ok else 'âœ—'}")
+    print(f"MongoDB:   {'âœ“' if mongo_ok else 'âœ—'}")
+    print(f"DB API:    {'âœ“' if api_ok else 'âœ—'}")
+    print(f"WebServer: {'âœ“' if web_ok else 'âœ—'}")
+    
+    all_ok = redis_ok and mongo_ok and api_ok and web_ok
+    
+    if all_ok:
+        print("\nâœ“ All services are running!")
+        print("\nYou can access the application at: http://localhost:5168")
+    else:
+        print("\nâœ— Some services are not running. See above for details.")
+    
+    return all_ok
+
+if __name__ == "__main__":
+    import sys
+    success = main()
+    sys.exit(0 if success else 1)
+
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\cleanup_database.py =====
+#!/usr/bin/env python3
+"""
+Database cleanup utility for clearing test data.
+Run this to reset the database if you have stale test data.
+"""
+
+import os
+from dotenv import load_dotenv
+from DB_Management import DBManagement
+
+def clear_database():
+    """Clear all collections in the test database"""
+    db = DBManagement()
+    
+    print("Connecting to database...")
+    try:
+        db.client.admin.command('ping')
+        print("âœ“ Database connection successful")
+    except Exception as e:
+        print(f"âœ— Database connection failed: {e}")
+        return False
+    
+    print("\nCollections to clear:")
+    collections = db.db.list_collection_names()
+    for coll in collections:
+        print(f"  - {coll}")
+    
+    if not collections:
+        print("  (no collections found)")
+        return True
+    
+    response = input("\nAre you sure you want to clear ALL data? (yes/no): ").strip().lower()
+    if response != "yes":
+        print("Cancelled.")
+        return False
+    
+    for collection in collections:
+        try:
+            db.db.drop_collection(collection)
+            print(f"âœ“ Cleared {collection}")
+        except Exception as e:
+            print(f"âœ— Failed to clear {collection}: {e}")
+            return False
+    
+    print("\nâœ“ Database cleared successfully")
+    return True
+
+def show_database_stats():
+    """Show statistics about the current database"""
+    db = DBManagement()
+    
+    try:
+        db.client.admin.command('ping')
+        print("Database Statistics:")
+        print("-" * 40)
+        
+        collections = db.db.list_collection_names()
+        if not collections:
+            print("No collections found (database is empty)")
+            return
+        
+        for coll_name in collections:
+            coll = db.db[coll_name]
+            count = coll.count_documents({})
+            print(f"{coll_name}: {count} documents")
+        
+    except Exception as e:
+        print(f"Failed to get stats: {e}")
+
+if __name__ == "__main__":
+    import sys
+    
+    load_dotenv()
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "stats":
+        show_database_stats()
+    else:
+        clear_database()
+
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\DB_Management.py =====
+from pymongo import MongoClient
+from typing import Any, Dict, List, Optional
+from bson import ObjectId
+from pydantic import ValidationError, create_model
+from pydanticSchemes import MatchEntry, UserScheme, ResumeScheme, JobPostingScheme
+from dotenv import load_dotenv
+import certifi
+import bcrypt
+import os
+
+class TransientDBError(Exception):
+    """DB is temporarily unavailable, should retry"""
+    pass
+
+class PermanentDBError(Exception):
+    """Business logic or validation failure, should discard"""
+    pass
+
+class DBManagement:
+
+    def __init__(self):
+        load_dotenv()
+        self.client = MongoClient(
+            os.getenv("MONGODB_URI"), 
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=5000
+        )
+        self.db = self.client["TestDB"]
+
+    def fetch(self, collection_name: str, filter: Optional[Dict[str, Any]] = None, projection: Optional[Dict[str, int]] = None) -> List[Dict[str, Any]]:
+        """
+        Retrieves documents from a specified collection, with optional filtering and field projection.
+        Returns a list of matched documents with ObjectId fields converted to strings.
+
+        Example:
+            # Fetch only the username and email of a specific user
+            db.fetch(
+                collection_name="Users",
+                filter={"username": "john_doe"},
+                projection={"username": 1, "email": 1}
+            )
+        # Returns: [{"_id": "abc123", "username": "john_doe", "email": "john@example.com"}]
+        """
+        flt = self.prepare_filter(filter)
+        coll = self.db[collection_name]
+        docs = list(coll.find(flt, projection))
+        return [self.stringify_id(d) for d in docs]
+
+    def insert_entry(self, Entry: Dict[str, Any], collection_name: str) -> Optional[str]:
+        """
+        Inserts a new document into the specified collection after validating it against
+        the collection's Pydantic scheme. Returns the inserted document's ID as a string
+        on success, or None on failure.
+
+        Special handling per collection:
+            - "Users":    Rejects duplicate usernames. Automatically hashes the plaintext
+                        password provided under the "passwordHash" key before insertion.
+            - "Resumes":  Rejects insertion if the associated user already has 10 resumes.
+
+        Example:
+            # Insert a new user
+            inserted_id = db.insert_entry(
+                Entry={
+                    "username": "john_doe",
+                    "email": "john@example.com",
+                    "passwordHash": "plaintext_password"  # will be hashed automatically
+                },
+                collection_name="Users"
+            )
+        # Returns: "abc123..." on success, or None on failure
+        """
+        
+        Entry = self.prepare_entry(Entry, collection_name)
+
+        if collection_name == "Resumes":
+            userId = Entry.get("userId")
+            if userId is None:
+                raise PermanentDBError("userId is required for resume entries")
+            try:
+                #count how many resumes belong to the user with the given username
+                docs = self.fetch(collection_name="Resumes", filter={"userId": userId})
+            except Exception as e:
+                print(f"Upload failed")
+                raise TransientDBError(str(e))
+            if len(docs) >= 10:
+                raise PermanentDBError(f"User with ID:{userId} already has 10 resumes")
+
+            #check if filename already exist for the same user, if so reject the upload
+            filename = Entry.get("filename")
+            if filename is None:
+                raise PermanentDBError("filename is required for resume entries")
+            try:
+                existing_resumes = self.fetch(collection_name="Resumes", filter={"userId": userId, "filename": filename})
+            except Exception as e:
+                raise TransientDBError(str(e))
+            if existing_resumes is None:
+                raise PermanentDBError("could not verify filename uniqueness for the user")
+            if existing_resumes:
+                raise PermanentDBError(f"Resume with filename '{filename}' already exists for user ID:{userId}")
+
+        if (collection_name == "Users"):
+            #use username fetch to check for existing user with same username
+            username = Entry.get("username")
+            if username is None:
+                raise PermanentDBError("username is required for user entries")
+            try:
+                existing_users = self.fetch(collection_name="Users", filter={"username": username})
+            except Exception as e:
+                raise TransientDBError(str(e))
+            if existing_users is None:
+                raise PermanentDBError("could not verify username uniqueness")
+            if existing_users:
+                raise PermanentDBError(f"User with username {username} already exists")
+            #hash the password before validation and insertion
+            password = Entry.get("passwordHash")
+            if password is None:
+                raise PermanentDBError("passwordHash is required for user entries")
+            # hash the password and convert bytes to string
+            Entry["passwordHash"] = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()  
+
+        try:
+            validated_Entry = self.get_Scheme(collection_name)(**Entry)
+            doc = validated_Entry.model_dump()
+        except Exception as e:
+            print(f"Validation failed: {e}")
+            raise PermanentDBError(str(e))
+
+        try:
+            coll = self.db[collection_name]
+            res = coll.insert_one(doc)
+            print(f"Upload successful: inserted_id={res.inserted_id}")
+            return str(res.inserted_id)
+        except Exception as e:
+            print(f"Upload failed")
+            raise  TransientDBError(str(e))      
+    
+    def update_value(self, flt: Dict[str, Any], attribute: str, new_value: Any, collection_name: str) -> int:
+        """
+        Updates a single field on all documents matching the given filter in the specified
+        collection. Validates the new value against the collection's Pydantic scheme before
+        applying the update. Returns the number of modified documents, or 0 on failure.
+
+        Special handling per collection:
+            - "Users":  If the attribute being updated is "passwordHash", the new value
+                        is treated as plaintext and will be hashed automatically before saving.
+
+        Example:
+            # Update the email of a specific user
+            modified_count = db.update_value(
+                flt={"username": "john_doe"},
+                attribute="email",
+                new_value="newemail@example.com",
+                collection_name="Users"
+            )
+        # Returns: 1 if the update was successful, 0 on failure
+        """
+        
+        filter_prepared = self.prepare_filter(flt)
+
+        if attribute == "passwordHash" and collection_name == "Users":
+            # hash the new password and convert bytes to string
+            new_value = bcrypt.hashpw(new_value.encode(), bcrypt.gensalt()).decode()
+
+        try:
+            scheme = self.get_Scheme(collection_name)
+            field = scheme.model_fields.get(attribute)
+            if field is None:
+                raise PermanentDBError(f"unknown attribute '{attribute}' for collection '{collection_name}'")
+            TempModel = create_model("TempModel", **{attribute: (field.annotation, ...)})
+            validation = TempModel(**{attribute: new_value})
+            new_value = validation.model_dump()[attribute]
+        except PermanentDBError:
+            raise
+        except ValidationError as e:
+            print(f"Validation failed: {e}")
+            raise PermanentDBError(str(e))
+        except Exception as e:
+            raise TransientDBError(str(e))
+            
+        try:
+            coll = self.db[collection_name]
+            res = coll.update_many(filter_prepared, {"$set": {attribute: new_value}})
+            print(f"Update successful: matched={res.matched_count}, modified={res.modified_count}")
+            return res.modified_count
+        except Exception as e:
+            print(f"Update failed")
+            raise TransientDBError(str(e))
+        
+    def delete_entry(self, flt: Optional[Dict[str, Any]], collection_name: str) -> int:
+        """
+        Deletes all documents matching the given filter from the specified collection.
+        Requires a non-empty filter to prevent accidental mass deletion. If no filter
+        is provided, no documents will be deleted. Returns the number of deleted documents,
+        or 0 on failure.
+
+        Example:
+            # Delete a specific user by username
+            deleted_count = db.delete_entry(
+                flt={"username": "john_doe"},
+                collection_name="Users"
+            )
+        # Returns: 1 if the user was found and deleted, 0 on failure
+        """
+
+        if not flt:
+            raise PermanentDBError("No filter provided, no documents deleted.")
+
+        filter_prepared = self.prepare_filter(flt)
+
+        try:
+            coll = self.db[collection_name]
+            res = coll.delete_many(filter_prepared)
+            print(f"Delete successful: deleted={res.deleted_count}")
+            return res.deleted_count
+        except Exception as e:
+            print(f"Delete failed")
+            raise TransientDBError(str(e))
+
+    def login_check(self, username: str, password: str) -> bool:
+        """
+        Verifies a user's credentials against the Users collection. Looks up the user by
+        username and compares the provided plaintext password against the stored hash.
+        Returns True if the credentials are valid, False otherwise.
+
+        Example:
+            # Check if a user's credentials are valid
+            is_authenticated = db.login_check(
+                username="john_doe",
+                password="plaintext_password"
+            )
+        # Returns: True if credentials match, False if username not found or password is incorrect
+        """
+        try:
+            coll = self.db["Users"]
+            user = coll.find_one({"username": username})
+            stored_hash = user.get("passwordHash") if user else None
+            if user and stored_hash and bcrypt.checkpw(password.encode(), stored_hash.encode()):
+                print("Login successful")
+                return True
+            else:
+                print("Login failed: invalid username or password")
+                return False
+        except Exception as e:
+            print(f"Login check failed: {e}")
+            return False
+
+    def entry_exists(self, flt: Dict[str, Any], collection_name: str) -> Optional[int]:
+        """
+        Counts the number of documents matching the given filter in the specified collection.
+        Returns the match count as an integer, or None if the check failed.
+
+        Example:
+            # Check how many resumes belong to a specific user
+            match_count = db.entry_exists(
+                flt={"userId": "abc123"},
+                collection_name="Resumes"
+            )
+        # Returns: 2 if two resumes were found, 0 if none exist, None on failure
+        """
+
+        filter_prepared = self.prepare_filter(flt)
+
+        try:
+            coll = self.db[collection_name]
+            matches = coll.count_documents(filter_prepared)
+            print(f"There are {matches} entries matching the filter in {collection_name}")
+            return matches
+        except Exception as e:
+            print(f"Existence check failed: {e}")
+            return None
+        
+    def add_matches(self, resumeId: str, jobPostingId: str, matchScore: int, matchedKeywords: List[str]) -> bool:
+        """
+        Adds a match entry to a resume's matches array, keeping only the top 10 highest scoring matches.
+        Validates the match entry against the MatchEntry scheme before insertion.
+        Returns True on success, False on failure.
+
+        Example:
+            # Add a match entry to a resume
+            success = db.add_matches(
+                resumeId="abc123",
+                jobPostingId="xyz789",
+                matchScore=85,
+                matchedKeywords=["python", "mongodb", "fastapi"]
+            )
+        # Returns: True if the match entry was added successfully, False on failure
+        """
+        # validate match entry
+        try:
+            match_entry = MatchEntry(
+                jobPostingId=ObjectId(jobPostingId),
+                matchScore=matchScore,
+                matchedKeywords=matchedKeywords
+            ).model_dump()
+        except Exception as e:
+            raise PermanentDBError(str(e))
+            
+
+        try:
+            coll = self.db["Resumes"]
+            resume = coll.find_one({"_id": ObjectId(resumeId)}, {"matches": 1})
+            if resume is None:
+                raise PermanentDBError(f"Resume {resumeId} not found")
+
+            matches = resume.get("matches", [])
+
+            # check if jobPostingId already exists
+            if any(str(m["jobPostingId"]) == jobPostingId for m in matches):
+                raise PermanentDBError(f"Job posting {jobPostingId} already matched to resume {resumeId}")
+
+            matches.append(match_entry)
+
+            # keep only top 10 by score
+            matches = sorted(matches, key=lambda x: x["matchScore"], reverse=True)[:10]
+
+            res = coll.update_one({"_id": ObjectId(resumeId)}, {"$set": {"matches": matches}})
+            if res.modified_count == 1:
+                print(f"Match added successfully to resume {resumeId}")
+                return True
+            else:
+                print(f"Failed to add match to resume {resumeId}")
+                return False
+        except PermanentDBError:
+            raise
+        except Exception as e:
+            raise TransientDBError(str(e))
+
+    def stringify_id(self, doc: Dict[str, Any]) -> Dict[str, Any]:
+        for key, value in doc.items():
+            if isinstance(value, ObjectId):
+                doc[key] = str(value)
+            elif isinstance(value, dict):
+                doc[key] = self.stringify_id(value)
+            elif isinstance(value, list):
+                doc[key] = [
+                    self.stringify_id(i) if isinstance(i, dict)
+                    else str(i) if isinstance(i, ObjectId)
+                    else i
+                    for i in value
+                ]
+        return doc
+    
+    def prepare_filter(self, flt: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        #prepare the filter by converting any string representations of ObjectIds to actual ObjectId instances, so that they can be used in MongoDB queries. 
+        #If no filter is provided, return an empty dictionary to match all documents.
+        if not flt:
+            return {}
+        # convert _id string to ObjectId if present
+        out = dict(flt)
+        for key in ("_id", "userId"):
+            if key in out and isinstance(out[key], str):
+                try:
+                    out[key] = ObjectId(out[key])
+                except Exception:
+                    pass
+        return out
+    
+    def prepare_entry(self, entry: Dict[str, Any], collection_name: str) -> Dict[str, Any]:
+        import base64
+        from bson import ObjectId
+
+        entry = dict(entry)
+
+        # -----------------------------
+        # Convert top-level ObjectIds
+        # -----------------------------
+        if collection_name in ["Resumes", "JobPostings"]:
+            if "userId" in entry and isinstance(entry["userId"], str):
+                try:
+                    entry["userId"] = ObjectId(entry["userId"])
+                except Exception:
+                    raise PermanentDBError("Invalid userId format")
+
+        # -----------------------------
+        # Convert binary data (Resumes)
+        # -----------------------------
+        if collection_name == "Resumes":
+            if "data" in entry and isinstance(entry["data"], str):
+                try:
+                    entry["data"] = base64.b64decode(entry["data"])
+                except Exception:
+                    raise PermanentDBError("Invalid base64 data")
+
+        # -----------------------------
+        # Convert nested matches (JobPostings)
+        # -----------------------------
+        if collection_name == "JobPostings":
+            matches = entry.get("matches")
+
+            if isinstance(matches, list):
+                for match in matches:
+                    if isinstance(match, dict):
+                        # resumeId -> ObjectId
+                        if "resumeId" in match and isinstance(match["resumeId"], str):
+                            try:
+                                match["resumeId"] = ObjectId(match["resumeId"])
+                            except Exception:
+                                raise PermanentDBError("Invalid resumeId format in matches")
+
+        return entry
+
+    def get_Scheme(self, collection_name: str):
+        #Return the Pydantic scheme class corresponding to the collection name.
+        match collection_name:
+            case "Users":
+                return UserScheme
+            case "Resumes":
+                return ResumeScheme
+            case "JobPostings":
+                return JobPostingScheme
+            case _:
+                raise ValueError(f"No scheme defined for collection: {collection_name}")
+
+    def close(self) -> None:
+        #Closes the MongoDB client connection. Should be called when the DBManagement instance is no longer needed to free up resources.
+        self.client.close()
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\DeletePoisonQueueEntries.py =====
+import redis
+
+client = redis.Redis(host='localhost', port=6379, db=0)
+poison_queue = "db_operations_poison"
+
+def clear_queue():
+    count = client.llen(poison_queue)
+    client.delete(poison_queue)
+    print(f"Deleted {count} messages from {poison_queue}")
+
+if __name__ == "__main__":
+    clear_queue()
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\main.py =====
+from fastapi import FastAPI, HTTPException
+from DB_Management import DBManagement
+from pydanticSchemes import (
+    FetchRequestScheme,
+    InsertEntryScheme,
+    UpdateValueScheme,
+    DeleteEntryScheme,
+    LoginScheme,
+    EntryExistScheme,
+    AddMatchesScheme
+)
+import requests
+
+# run: uvicorn main:app --port 8000 --reload
+
+app = FastAPI()
+db = DBManagement()
+
+EXTRACTOR_URL = "http://127.0.0.1:8001/extract"
+
+
+@app.post("/login")
+async def login(request: LoginScheme):
+    success = db.login_check(username=request.username, password=request.password)
+    return {"result": success}
+
+
+@app.post("/fetch")
+async def fetch_users(request: FetchRequestScheme):
+    users = db.fetch(
+        collection_name=request.collection_name,
+        filter=request.filter,
+        projection=request.projection
+    )
+    return {"result": users}
+
+
+@app.post("/entryExist")
+async def entry_exist(request: EntryExistScheme):
+    count = db.entry_exists(
+        collection_name=request.collection_name,
+        flt=request.filter
+    )
+    return {"result": count}
+
+
+# -----------------------------
+# DIRECT DB WRITES (NO REDIS)
+# -----------------------------
+
+@app.post("/insertEntry")
+async def insert_entry(request: InsertEntryScheme):
+    try:
+        inserted_id = db.insert_entry(
+            Entry=request.entry,
+            collection_name=request.collection_name
+        )
+
+        # âœ… NEW: trigger extractor automatically for resumes
+        if request.collection_name == "Resumes":
+            try:
+                requests.post(
+                    EXTRACTOR_URL,
+                    json={"resumeId": inserted_id}
+                )
+            except Exception as e:
+                print(f"Extractor call failed: {e}")
+
+        return {"result": inserted_id}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/updateValue")
+async def update_value(request: UpdateValueScheme):
+    try:
+        result = db.update_value(
+            flt=request.filter,
+            attribute=request.attribute,
+            new_value=request.new_value,
+            collection_name=request.collection_name
+        )
+        return {"result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/deleteEntry")
+async def delete_entry(request: DeleteEntryScheme):
+    try:
+        result = db.delete_entry(
+            flt=request.filter,
+            collection_name=request.collection_name
+        )
+        return {"result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/addMatches")
+async def add_matches(request: AddMatchesScheme):
+    try:
+        result = db.add_matches(
+            resumeId=request.resumeId,
+            jobPostingId=request.jobPostingId,
+            matchScore=request.matchScore,
+            matchedKeywords=request.matchedKeywords
+        )
+        return {"result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# -----------------------------
+# ANALYZE ENDPOINT
+# -----------------------------
+@app.post("/analyze/{resume_id}")
+async def analyze_resume(resume_id: str):
+    try:
+        response = requests.post(
+            EXTRACTOR_URL,
+            json={"resumeId": resume_id}
+        )
+        return response.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\PoisonQueueInspection.py =====
+import redis
+import json
+
+client = redis.Redis(host='localhost', port=6379, db=0)
+poison_queue = "db_operations_poison"
+
+def list_messages():
+    messages = client.lrange(poison_queue, 0, -1)
+    for i, msg in enumerate(messages):
+        data = json.loads(msg)
+        print(f"\n--- Message {i} ---")
+        print(json.dumps(data, indent=2))
+
+def peek_message(index=0):
+    msg = client.lindex(poison_queue, index)
+    if msg:
+        print(json.dumps(json.loads(msg), indent=2))
+
+def count_messages():
+    print("Poison queue size:", client.llen(poison_queue))
+
+
+if __name__ == "__main__":
+    count_messages()
+    list_messages()
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\pydanticSchemes.py =====
+from pydantic import BaseModel, ConfigDict, field_validator
+from typing import List, Optional, Dict, Any
+from enum import Enum
+from bson import ObjectId
+
+""""
+class JobType(str, Enum):
+    FULL_TIME = "full-time"
+    PART_TIME = "part-time"
+    CONTRACT = "contract"
+    TEMPORARY = "temporary"
+    INTERN = "intern"
+    VOLUNTEER = "volunteer"
+    OTHER = "other"
+
+class expectedSalary(str, Enum):
+    ZERO_TO_30K = "0-30k"
+    THIRTYK_TO_60K = "30k-60k"
+    SIXTYK_TO_100K = "60k-100k"
+    ONE_HUNDRED_K_TO_150K = "100k-150k"
+    ONE_FIFTY_K_TO_200K = "150k-200k"
+    TWO_HUNDRED_K_PLUS = "200k+"
+
+class industry(str, Enum):
+    TECH = "tech"
+    FINANCE = "finance"
+    HEALTHCARE = "healthcare"
+    EDUCATION = "education"
+    MANUFACTURING = "manufacturing"
+    RETAIL = "retail"
+    OTHER = "other"
+
+class experienceLevel(str, Enum):
+    ENTRY_LEVEL = "entry-level"
+    MID_LEVEL = "mid-level"
+    SENIOR_LEVEL = "senior-level"
+    MANAGER = "manager"
+    DIRECTOR = "director"
+    EXECUTIVE = "executive"
+
+class remote(str, Enum):
+    REMOTE = "remote"
+    ON_SITE = "on-site"
+    HYBRID = "hybrid"
+
+class companySize(str, Enum):
+    ONE_TO_10 = "1-10"
+    ELEVEN_TO_50 = "11-50"
+    FIFTY_ONE_TO_200 = "51-200"
+    TWO_HUNDRED_ONE_TO_500 = "201-500"
+    FIVE_HUNDRED_ONE_TO_1000 = "501-1000"
+    ONE_THOUSAND_ONE_TO_5000 = "1001-5000"
+    FIVE_THOUSAND_ONE_TO_10000 = "5001-10000"
+    TEN_THOUSAND_PLUS = "10000+"
+"""
+
+class MatchEntry(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    resumeId: ObjectId
+    matchScore: int
+    matchedKeywords: List[str]
+
+class UserScheme(BaseModel):
+    username: str
+    passwordHash: str
+    firstName: Optional[str] = ""
+    lastName: Optional[str] = ""
+    email: Optional[str] = ""
+    phone: Optional[str] = ""
+
+    @field_validator(
+        'email',
+        mode='before'
+    )
+    @classmethod
+    def normalize_enums(cls, v):
+        if isinstance(v, list):
+            return [item.lower() if isinstance(item, str) else item for item in v]
+        return v
+
+class ResumeScheme(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    filename: str
+    userId: ObjectId
+    data: bytes
+    uploadDate: str
+    isActive: bool
+    locationConfig: Optional[List[str]] = []
+    expectedSalaryConfig: Optional[List[str]] = [] #expectedSalary
+    jobTypeConfig: Optional[List[str]] = [] #JobType
+    industryConfig: Optional[List[str]] = [] #industry
+    experienceLevelConfig: Optional[List[str]] = [] #experienceLevel
+    remoteConfig: Optional[List[str]] = [] #remote
+    companySizeConfig: Optional[List[str]] = [] #companySize
+    tags: Optional[List[str]] = []
+    extractedKeywords: Optional[List[str]] = []
+    atsScore: Optional[int] = 0
+
+    @field_validator(
+        'locationConfig',
+        'expectedSalaryConfig', 
+        'jobTypeConfig', 
+        'industryConfig',
+        'experienceLevelConfig',
+        'remoteConfig',
+        'companySizeConfig',
+        'tags', 
+        'extractedKeywords',
+        mode='before'
+    )
+    @classmethod
+    def normalize_enums(cls, v):
+        if isinstance(v, list):
+            return [item.lower() if isinstance(item, str) else item for item in v]
+        return v
+
+class JobPostingScheme(BaseModel):
+    title: str
+    datePosted: Optional[str] = ""
+    dateExtracted: str
+    dateExpiring: Optional[str] = ""
+    domain: str
+    company: Optional[str] = ""
+    locationC: Optional[List[str]] = []
+    salaryRangeC: Optional[List[str]] = "" #expectedSalary
+    jobTypeC: Optional[List[str]] = [] #JobType
+    industryC: Optional[List[str]] = [] #industry
+    experienceLevelC: Optional[List[str]] = [] #experienceLevel
+    remoteC: Optional[List[str]] = [] #remote
+    companySizeC: Optional[str] = "" #companySize
+    text: str
+    url: str
+    keywords: Optional[List[str]] = []
+    matches: Optional[List[MatchEntry]] = []
+
+    @field_validator(
+        'company',
+        'locationC', 
+        'jobTypeC', 
+        'industryC',
+        'experienceLevelC',
+        'remoteC',
+        'companySizeC',
+        'keywords',
+        mode='before'
+    )
+    @classmethod
+    def normalize_enums(cls, v):
+        if isinstance(v, list):
+            return [item.lower() if isinstance(item, str) else item for item in v]
+        return v
+
+class FetchRequestScheme(BaseModel):
+    collection_name: str
+    filter: Optional[Dict[str, Any]] = None
+    projection: Optional[Dict[str, int]] = None
+
+class InsertEntryScheme(BaseModel):
+    collection_name: str
+    entry: Dict[str, Any]
+
+class UpdateValueScheme(BaseModel):
+    collection_name: str
+    filter: Dict[str, Any]
+    attribute: str
+    new_value: Any
+
+class DeleteEntryScheme(BaseModel):
+    collection_name: str
+    filter: Optional[Dict[str, Any]] = None
+
+class LoginScheme(BaseModel):
+    username: str
+    password: str
+
+class EntryExistScheme(BaseModel):
+    collection_name: str
+    filter: Optional[Dict[str,Any]] = None
+
+class AddMatchesScheme(BaseModel):
+    resumeId: str
+    jobPostingId: str
+    matchScore: int
+    matchedKeywords: Optional[List[str]] = []
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\queue_manager.py =====
+import redis
+import json
+import uuid
+
+class QueueManager:
+    def __init__(self):
+        self.client = redis.Redis(host='localhost', port=6379, db=0)
+        self.queue_name = "db_operations"
+
+    def publish(self, operation: str, payload: dict, timeout: int = 10) -> dict:
+        try:
+            job_id = str(uuid.uuid4())
+            message = json.dumps({"job_id": job_id, "operation": operation, "payload": payload})
+            self.client.rpush(self.queue_name, message)
+
+            # wait for the worker to publish the result
+            result = self.client.blpop(f"result:{job_id}", timeout=timeout)
+            if result is None:
+                return {"success": False, "error": "Worker timed out"}
+
+            return json.loads(result[1])
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\test.py =====
+"""
+from DB_Management import DBManagement as UserDB
+import pprint
+from bson import ObjectId
+
+db = UserDB()
+
+#projection = {"lastName": 1, "email": 1, "resumes": 1, "_id": 0}
+#users = db.fetch(projection=projection)
+#pprint.pprint(users)
+
+#db.insert_file()
+
+#db.download_file()
+
+test = db.fetch(collection_name= "Resumes",filter={"filename": "resumeMatchTest.pdf"}, projection= {"_id": 0, "data": 1, "atsScore": 1})
+pprint.pprint(test)
+
+#db.update_user_value(flt={"username": None}, attribute="lastName", new_value="Smith")
+
+db.close()
+"""
+import base64
+
+import httpx
+
+response = httpx.post("http://localhost:8000/insertEntry", json={"collection_name": "Resumes", "entry": {"filename": "resumeMatchTest.pdf", "userId": "69b76e623620734883622265", "data": base64.b64encode(b"base64_encoded_data").decode(), "uploadDate": "0284357", "isActive": False}}, timeout=15)
+
+print(response.json())
+
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\DB\worker.py =====
+import redis
+import json
+import time
+import signal
+from DB_Management import DBManagement, TransientDBError, PermanentDBError
+
+#run: python worker.py
+
+db = DBManagement()
+client = redis.Redis(host='localhost', port=6379, db=0)
+queue_name = "db_operations"
+dead_letter_queue = "db_operations_failed"
+db_healthy = True
+MAX_RETRIES = 3
+poison_queue = "db_operations_poison"
+
+def check_db_health() -> bool:
+    """
+    Pings the MongoDB server to check if the connection is available.
+    Returns True if healthy, False otherwise.
+    """
+    try:
+        db.client.admin.command('ping')
+        return True
+    except Exception:
+        return False
+
+def dispatch(operation: str, payload: dict):
+    """
+    Dispatches a message to the correct DBManagement method.
+    Raises TransientDBError for DB connection issues, PermanentDBError for business logic failures.
+    """
+    print(f"Processing operation: {operation}")
+    if operation == "insertEntry":
+        db.insert_entry(Entry=payload["entry"], collection_name=payload["collection_name"])
+    elif operation == "updateValue":
+        db.update_value(flt=payload["flt"], attribute=payload["attribute"], new_value=payload["new_value"], collection_name=payload["collection_name"])
+    elif operation == "deleteEntry":
+        db.delete_entry(flt=payload["flt"], collection_name=payload["collection_name"])
+    elif operation == "addMatches":
+        db.add_matches(resumeId=payload["resumeId"], jobPostingId=payload["jobPostingId"], matchScore=payload["matchScore"], matchedKeywords=payload["matchedKeywords"])
+    else:
+        raise PermanentDBError(f"Unknown operation: {operation}")
+    
+def publish_result(job_id: str, success: bool, error: str = None):
+    if job_id:
+        result = {"success": success, "error": error}
+        client.rpush(f"result:{job_id}", json.dumps(result))
+        client.expire(f"result:{job_id}", 20)
+        
+def process_message(message) -> bool:
+    """
+    Processes a single message. Returns True on success, False on permanent failure.
+    Raises TransientDBError if the DB is unavailable so the caller can handle it.
+    """
+    data = json.loads(message)
+    operation = data["operation"]
+    payload = data["payload"]
+    job_id = data["job_id"]
+
+    try:
+        dispatch(operation, payload)
+        publish_result(job_id, True)
+        return True
+    except PermanentDBError as e:
+        print(f"Permanent failure, discarding: {e}")
+        publish_result(job_id, False, str(e))
+        return False
+    # TransientDBError propagates up to the caller
+
+def drain_dead_letter_queue():
+    """
+    Attempts to reprocess all messages in the dead letter queue.
+    Stops immediately if a transient error is encountered â€” DB is still down.
+    """
+    dead_count = client.llen(dead_letter_queue)
+    if dead_count == 0:
+        return
+
+    print(f"Found {dead_count} failed messages, retrying...")
+    for _ in range(dead_count):
+        message = client.lpop(dead_letter_queue)
+        if message is None:
+            break
+        try:
+            if process_message(message):
+                print("Dead letter message recovered successfully")
+            # if False it was a permanent failure, already discarded
+        except TransientDBError:
+            # DB went down again mid-drain, put message back and stop
+            print("Transient error during dead letter queue processing")
+            handle_retry(json.loads(message))
+            continue
+
+def handle_retry(message_data: dict):
+    retries = message_data.get("retries", 0) + 1
+    message_data["retries"] = retries
+
+    if retries > MAX_RETRIES:
+        print(f"Message exceeded max retries ({MAX_RETRIES}), moving to poison queue")
+        client.rpush(poison_queue, json.dumps(message_data))
+    else:
+        print(f"Retrying message ({retries}/{MAX_RETRIES})")
+        client.rpush(dead_letter_queue, json.dumps(message_data))
+
+# check dead letter queue on startup
+print("Worker started, checking dead letter queue...")
+try:
+    drain_dead_letter_queue()
+except TransientDBError:
+    print("DB is down at startup, will retry...")
+    db_healthy = False
+
+print("Listening for new messages...")
+
+running = True
+
+def shutdown(sig, frame):
+    global running
+    print("Shutting down worker...")
+    running = False
+
+signal.signal(signal.SIGINT, shutdown)
+signal.signal(signal.SIGTERM, shutdown)
+
+while running:
+    if not db_healthy:
+        print("DB is down, checking health...")
+        db_healthy = check_db_health()
+        if db_healthy:
+            print("DB recovered, draining dead letter queue...")
+            drain_dead_letter_queue()
+        else:
+            time.sleep(3)  # wait before checking again
+        continue
+
+    if client.llen(dead_letter_queue) > 0:
+        drain_dead_letter_queue()  # check for any failed messages before processing new ones
+
+    # DB is healthy, process normally
+    result = client.blpop(queue_name, timeout=5)
+    if result is not None:
+        _, message = result
+        try:
+            if not process_message(message):
+                pass  # permanent failure, already discarded
+        except TransientDBError as e:
+            print(f"DB went down: {e}")
+            data = json.loads(message)
+            handle_retry(data)
+            db_healthy = False
+
+db.close()
+client.close()
+print("Worker stopped.")
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\Extractor\database.py =====
+"""
+database.py
+-----------
+Handles all MongoDB operations.
+Stores and retrieves resume analysis results.
+"""
+
+from datetime import datetime, timezone
+from pymongo import MongoClient
+
+
+# â”€â”€ Connect â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def get_db(uri: str = "mongodb://localhost:27017", db_name: str = "resume_matcher"):
+    """Connect to MongoDB and return the database."""
+    client = MongoClient(uri)
+    return client[db_name]
+
+
+# â”€â”€ Save a result â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def save_result(db, result: dict) -> str:
+    """
+    Save one resume-vs-job analysis result to MongoDB.
+
+    Expected result format:
+    {
+        "candidate"      : "John_Resume.pdf",
+        "job_title"      : "Data Scientist",
+        "skills_matched" : [...],
+        "skills_missing" : [...],
+        "match_score"    : 72.5
+    }
+
+    Returns the inserted document ID as a string.
+    """
+    result["created_at"] = datetime.now(timezone.utc)
+    inserted = db.results.insert_one(result)
+    return str(inserted.inserted_id)
+
+
+# â”€â”€ Fetch all results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def fetch_all_results(db) -> list[dict]:
+    """Return all stored results, newest first."""
+    return list(db.results.find({}, {"_id": 0}).sort("created_at", -1))
+
+
+# â”€â”€ Fetch by job title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def fetch_by_job(db, job_title: str) -> list[dict]:
+    """Return all results for a specific job title."""
+    return list(
+        db.results.find(
+            {"job_title": {"$regex": job_title, "$options": "i"}},
+            {"_id": 0}
+        ).sort("match_score", -1)
+    )
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\Extractor\extractor.py =====
+"""
+extractor.py
+------------
+Core logic for extracting skills from text.
+"""
+import re
+import numpy as np
+import spacy
+from spacy.matcher import PhraseMatcher
+from pathlib import Path
+
+
+# â”€â”€ Read file â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+def read_file(path: str) -> str:
+    path = Path(path)
+    ext = path.suffix.lower()
+    if ext == ".txt":
+        return path.read_text(encoding="utf-8", errors="replace")
+    elif ext == ".pdf":
+        import pdfplumber
+        text = []
+        with pdfplumber.open(path) as pdf:
+            for page in pdf.pages:
+                t = page.extract_text()
+                if t:
+                    text.append(t)
+        return "\n".join(text)
+    elif ext in (".docx", ".doc"):
+        from docx import Document
+        doc = Document(path)
+        return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+    else:
+        raise ValueError(f"Unsupported file type: {ext}")
+
+
+# â”€â”€ Clean text â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+def clean_text(text: str) -> str:
+    text = re.sub(r"[^\x20-\x7E\n]", " ", text)
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n{2,}", "\n", text)
+    return text.strip()
+
+
+# â”€â”€ Extractor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+class SkillExtractor:
+    def __init__(self, skills: list[str], model: str = "en_core_web_md"):
+        print(f"Loading spaCy model '{model}'...")
+        self.nlp = spacy.load(model)
+        skills = sorted({s.strip().lower() for s in skills if s.strip()})
+        print(f"{len(skills)} skills loaded.")
+
+        # â”€â”€ Phrase matcher (surface form) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        print("Building phrase matcher (surface)...")
+        self.matcher = PhraseMatcher(self.nlp.vocab, attr="LOWER")
+        patterns = list(self.nlp.pipe(skills, batch_size=2000))
+        self.matcher.add("SKILLS", patterns)
+
+        # â”€â”€ Phrase matcher (lemma) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Catches plurals / verb inflections, e.g. "managed" â†’ "manage"
+        print("Building phrase matcher (lemma)...")
+        self.lemma_matcher = PhraseMatcher(self.nlp.vocab, attr="LEMMA")
+        self.lemma_matcher.add("SKILLS_LEMMA", patterns)
+
+        # â”€â”€ Pre-tokenised skill lemma sets for token-level scan â”€
+        # Covers cases like "machine learning" split across a hyphen or slash
+        print("Building token-level lemma index...")
+        self._skill_lemma_sets: dict[str, frozenset[str]] = {}
+        for skill, doc in zip(skills, patterns):
+            lemmas = frozenset(t.lemma_ for t in doc if not t.is_punct)
+            if lemmas:
+                self._skill_lemma_sets[skill] = lemmas
+
+        # â”€â”€ Embeddings (used only for the guarded semantic pass) â”€â”€
+        print("Computing skill embeddings...")
+        self.skills, self.matrix = self._build_matrix(skills)
+
+        print("Extractor ready.\n")
+
+    def _build_matrix(self, skills: list[str]):
+        valid, vectors = [], []
+        for skill in skills:
+            vec = self.nlp(skill).vector
+            if vec.any():
+                valid.append(skill)
+                vectors.append(vec)
+        matrix = np.array(vectors, dtype=np.float32)
+        norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+        norms[norms == 0] = 1
+        return valid, matrix / norms
+
+    def extract(self, text: str, threshold: float = 0.92) -> list[str]:
+        """
+        Return every skill that is explicitly present in *text*.
+
+        Four passes are run in order, all anchored to actual resume tokens:
+          1. Surface phrase match   â€“ exact text, any casing
+          2. Lemma phrase match     â€“ inflected forms, e.g. "managed" â†’ "manage"
+          3. Token-level lemma scan â€“ multi-word skills (2+ tokens) whose lemmas
+                                      all appear somewhere in the resume
+          4. Guarded semantic match â€“ cosine similarity >= threshold, but ONLY
+                                      accepted when at least one skill token also
+                                      appears verbatim in the resume, preventing
+                                      pure hallucination from the vector space.
+
+        Args:
+            text:      Raw resume text.
+            threshold: Cosine similarity cutoff for the semantic pass (default 0.92).
+        """
+        cleaned = clean_text(text)
+        doc = self.nlp(cleaned)
+
+        found: set[str] = set()
+
+        # â”€â”€ Pass 1: surface exact match â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        for _, start, end in self.matcher(doc):
+            found.add(doc[start:end].text.lower())
+
+        # â”€â”€ Pass 2: lemma phrase match â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        for _, start, end in self.lemma_matcher(doc):
+            # Map back to the canonical skill name via lemma comparison
+            span_lemmas = frozenset(t.lemma_ for t in doc[start:end] if not t.is_punct)
+            for skill, skill_lemmas in self._skill_lemma_sets.items():
+                if skill_lemmas == span_lemmas:
+                    found.add(skill)
+                    break
+
+        # â”€â”€ Pass 3: token-level lemma scan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Build a lemma bag from the whole resume once.
+        resume_lemmas = [
+            t.lemma_.lower()
+            for t in doc
+            if not t.is_stop and not t.is_punct and not t.is_space
+        ]
+        resume_lemma_set = set(resume_lemmas)
+
+        for skill, skill_lemmas in self._skill_lemma_sets.items():
+            if skill in found:
+                continue  # already matched
+
+            if not skill_lemmas.issubset(resume_lemma_set):
+                # At least one required lemma is absent â†’ definite miss
+                continue
+
+            # For single-token skills the subset check is sufficient only
+            # when the token is relatively rare. Require at least 2 tokens
+            # for order-independent matching to avoid false positives like
+            # "data" matching a "data entry" skill.
+            if len(skill_lemmas) < 2:
+                continue
+
+            found.add(skill)
+
+        # â”€â”€ Pass 4: guarded semantic match â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Cosine similarity alone is too loose even at 0.95 because related
+        # tech terms cluster tightly (Java â†” JavaScript, AWS â†” Azure).
+        # The guard requires that at least one non-stop token from the
+        # candidate skill actually appears in the resume, so the vector
+        # only promotes a match rather than creating one from nothing.
+        if self.matrix.size:
+            resume_surface = {t.lower_ for t in doc if not t.is_space}
+            for chunk in doc.noun_chunks:
+                vec = chunk.vector
+                if not vec.any():
+                    continue
+                norm = np.linalg.norm(vec)
+                if norm == 0:
+                    continue
+                vec = vec / norm
+                sims = self.matrix @ vec
+                best_idx = int(np.argmax(sims))
+                if sims[best_idx] < threshold:
+                    continue
+                candidate = self.skills[best_idx]
+                if candidate in found:
+                    continue
+                # Guard: at least one skill token must exist in the resume
+                skill_tokens = {
+                    t.lower_
+                    for t in self.nlp(candidate)
+                    if not t.is_stop and not t.is_punct
+                }
+                if skill_tokens & resume_surface:
+                    found.add(candidate)
+
+        return sorted(found)
+
+
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\Extractor\main.py =====
+from fastapi import FastAPI
+from bson import ObjectId
+import tempfile
+import os
+import pandas as pd
+from datetime import datetime
+import sys
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+db_path = os.path.join(project_root, 'DB')
+
+sys.path.append(project_root)
+sys.path.append(db_path)
+
+from extractor import SkillExtractor, read_file
+from DB.DB_Management import DBManagement
+
+app = FastAPI()
+
+# -----------------------------
+# CONFIG
+# -----------------------------
+SKILLS_CSV = "Skills.csv"
+SKILL_COLUMN = "Example"
+SIMILARITY = 0.80
+
+
+def load_skills(csv_path: str, column: str):
+    df = pd.read_csv(csv_path)
+
+    if column not in df.columns:
+        raise ValueError(f"Column '{column}' not found.")
+
+    skills = (
+        df[column]
+        .dropna()
+        .str.lower()
+        .str.strip()
+    )
+
+    skills = skills[skills.str.len() > 2]
+    skills = skills.drop_duplicates()
+
+    return skills.tolist()
+
+
+# Load once
+skills_list = load_skills(SKILLS_CSV, SKILL_COLUMN)
+extractor = SkillExtractor(skills_list)
+
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "DB", ".env"))
+
+db_manager = DBManagement()
+
+
+@app.post("/extract")
+def extract(data: dict):
+    resume_id = data.get("resumeId")
+
+    if not resume_id:
+        return {"error": "resumeId required"}
+
+    print(f"[Extractor] Received resumeId: {resume_id}")
+
+    try:
+        resume_id_obj = ObjectId(resume_id)
+    except:
+        return {"error": "Invalid resumeId"}
+
+    # -----------------------------
+    # FETCH RESUME
+    # -----------------------------
+    resumes = db_manager.fetch(
+        collection_name="Resumes",
+        filter={"_id": resume_id_obj}
+    )
+
+    print(f"[Extractor] Fetch result count: {len(resumes)}")
+
+    if not resumes or len(resumes) == 0:
+        return {"error": "Resume not found"}
+
+    resume = resumes[0]
+    binary_data = resume.get("data")
+
+    if not binary_data:
+        return {"error": "No file data found"}
+
+    # -----------------------------
+    # SAVE TEMP FILE
+    # -----------------------------
+    suffix = ".pdf"
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(binary_data)
+        temp_path = tmp.name
+
+    print(f"[Extractor] Temp file created: {temp_path}")
+
+    try:
+        # -----------------------------
+        # READ TEXT
+        # -----------------------------
+        text = read_file(temp_path)
+
+        if not text or len(text.strip()) == 0:
+            print("[Extractor] No text extracted")
+            return {"error": "Failed to extract text"}
+
+        print(f"[Extractor] Text length: {len(text)}")
+
+        # -----------------------------
+        # EXTRACT SKILLS
+        # -----------------------------
+        resume_skills = extractor.extract(text, SIMILARITY)
+
+        print(f"[Extractor] Skills extracted: {len(resume_skills)}")
+
+        # -----------------------------
+        # STORE IN DB
+        # -----------------------------
+        db_manager.update_value(
+            flt={"_id": resume_id_obj},
+            attribute="extractedKeywords",
+            new_value=resume_skills,
+            collection_name="Resumes"
+        )
+
+        print("[Extractor] DB updated successfully")
+
+        return {
+            "resumeId": resume_id,
+            "skills": resume_skills
+        }
+
+    except Exception as e:
+        print(f"[Extractor ERROR] {e}")
+        return {"error": str(e)}
+
+    finally:
+        os.remove(temp_path)
+        print("[Extractor] Temp file deleted")
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\JobScraper\main.py =====
+"""
+main.py
+-------
+FastAPI entry point for the Job Scraper API.
+
+Run locally:
+    uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+Required environment variables:
+    GROQ_API_KEY           â€” your Groq API key
+    EXTERNAL_API_ENDPOINT  â€” DB endpoint (default: http://172.24.165.77:8080/insertEntry)
+
+Install dependencies:
+    pip install fastapi uvicorn python-jobspy openai httpx pandas python-dotenv
+"""
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+print("GROQ KEY:", os.getenv("GROQ_API_KEY"))
+
+from typing import Annotated
+
+import pandas as pd
+from fastapi import FastAPI, File, Query, UploadFile
+from fastapi.responses import JSONResponse
+
+from services import (
+    insert_jobs_to_db,
+    read_skills_file,
+    scrape_jobs_for_titles,
+    skills_to_job_titles,
+)
+
+# ---------------------------------------------------------------------------
+# App
+# ---------------------------------------------------------------------------
+app = FastAPI(
+    title="Job Scraper API",
+    description=(
+        "Upload a .txt file of skills â†’ AI converts them to job titles â†’ "
+        "JobSpy scrapes matching postings â†’ results are saved to the database."
+    ),
+    version="1.0.0",
+)
+
+
+# ---------------------------------------------------------------------------
+# Health check
+# ---------------------------------------------------------------------------
+@app.get("/health", tags=["Meta"])
+async def health():
+    """Simple liveness check."""
+    return {"status": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# Main endpoint
+# ---------------------------------------------------------------------------
+@app.post("/scrape-jobs", tags=["Jobs"])
+async def scrape_jobs_endpoint(
+    # --- required ---
+    skills_file: Annotated[
+        UploadFile,
+        File(description="Plain-text (.txt) file containing the user's skills."),
+    ],
+    # --- optional search parameters ---
+    location: str = Query(
+        "San Francisco, CA",
+        description="Location to search (e.g. 'Remote', 'New York, NY').",
+    ),
+    sites: list[str] = Query(
+        ["linkedin"],
+        description="Job boards to scrape.",
+    ),
+    results_wanted: int = Query(
+        5,
+        ge=1,
+        le=50,
+        description="Max results per job title per site (e.g. 5 titles Ã— 5 results = 25 total).",
+    ),
+    hours_old: int = Query(
+        72,
+        ge=1,
+        description="Only include postings this many hours old or newer.",
+    ),
+):
+    """
+    Full pipeline:
+
+    1. Read skills from the uploaded .txt file.  
+    2. Use Groq AI (Llama-3.3-70B) to derive up to 5 job titles from those skills.  
+    3. Scrape matching postings from the requested job boards via JobSpy.  
+    4. Insert every posting into the database via the configured external API.  
+    5. Return the scraped jobs as JSON together with per-job insert results.
+    """
+
+    # Step 1 â€” read skills
+    skills_text = await read_skills_file(skills_file)
+
+    # Step 2 â€” AI: skills â†’ job titles
+    job_titles = skills_to_job_titles(skills_text)
+
+    # Step 3 â€” scrape jobs for each title
+    jobs_df: pd.DataFrame = scrape_jobs_for_titles(
+        titles=job_titles,
+        location=location,
+        sites=sites,
+        results_wanted=results_wanted,
+        hours_old=hours_old,
+    )
+
+    # Step 4 â€” insert into DB and collect per-job results
+    db_results = await insert_jobs_to_db(jobs_df)
+
+    # Step 5 â€” build response
+    # Drop internal helper column before serialising
+    jobs_df = jobs_df.drop(columns=["_search_term"], errors="ignore")
+
+    # Convert DataFrame to JSON-safe records (NaN â†’ None, dates â†’ ISO strings)
+    for col in jobs_df.select_dtypes(include=["datetime64[ns]", "object"]).columns:
+        jobs_df[col] = jobs_df[col].apply(
+            lambda x: x.isoformat() if hasattr(x, "isoformat") else x
+        )
+    jobs_records = jobs_df.where(pd.notna(jobs_df), other=None).to_dict(orient="records")
+
+    successful = sum(1 for r in db_results if r["status"] == "success")
+    failed = len(db_results) - successful
+
+    return JSONResponse(
+        content={
+            "message": "Job scraping completed.",
+            "derived_job_titles": job_titles,
+            "total_jobs_found": len(jobs_df),
+            "db_inserts": {
+                "successful": successful,
+                "failed": failed,
+                "details": db_results,
+            },
+            "jobs": jobs_records,
+        }
+    )
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\JobScraper\services.py =====
+"""
+services.py
+-----------
+All business logic for the Job Scraper API:
+  - Read skills from an uploaded .txt file
+  - Convert skills â†’ job titles via Groq AI
+  - Scrape jobs via JobSpy
+  - Format each job row into the target JSON schema
+  - POST each entry to the external database endpoint
+"""
+
+import ast
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+import os
+from datetime import datetime, date
+from typing import Optional
+from urllib.parse import urlparse
+
+from dotenv import load_dotenv
+import httpx
+import pandas as pd
+from fastapi import HTTPException, UploadFile
+from openai import OpenAI
+
+# How long to wait (seconds) for a single site/title scrape before giving up
+SCRAPE_TIMEOUT: int = int(os.getenv("SCRAPE_TIMEOUT", "45"))
+ 
+
+# ---------------------------------------------------------------------------
+# Configuration (override via environment variables in production)
+# ---------------------------------------------------------------------------
+load_dotenv()  # Load .env file if present
+GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+
+EXTERNAL_API_ENDPOINT: str = os.getenv(
+    "EXTERNAL_API_ENDPOINT", "http://127.0.0.1:8000/insertEntry"
+)
+COLLECTION_NAME: str = "JobPostings"
+ 
+ 
+# ---------------------------------------------------------------------------
+# Internal helper: build a Groq client (raises 500 if key is missing)
+# ---------------------------------------------------------------------------
+def _get_groq_client() -> OpenAI:
+    if not GROQ_API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="GROQ_API_KEY environment variable is not set.",
+        )
+    return OpenAI(api_key=GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+
+
+# ---------------------------------------------------------------------------
+# 1. Read skills from the uploaded .txt file
+# ---------------------------------------------------------------------------
+async def read_skills_file(file: UploadFile) -> str:
+    """Decode and return the raw text from the uploaded skills file."""
+    if not file.filename.endswith(".txt"):
+        raise HTTPException(status_code=400, detail="Skills file must be a .txt file.")
+    content = await file.read()
+    return content.decode("utf-8")
+
+
+# ---------------------------------------------------------------------------
+# 2. Convert raw skills text â†’ up to 5 job title strings via Groq AI
+# ---------------------------------------------------------------------------
+def skills_to_job_titles(skills: str) -> list[str]:
+    """
+    Ask Groq to map the skills text to relevant job titles.
+    Returns a list[str]; raises HTTPException(502) on failure.
+    """
+    if not skills.strip():
+        return []
+
+    client = _get_groq_client()
+    prompt = (
+        f"Given these skills:\n{skills}\n\n"
+        "Return a list of up to 5 relevant job titles. "
+        "Only return a Python list of strings and nothing else."
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a helpful career assistant. "
+                        "Your response MUST be a valid Python list of strings, e.g. "
+                        '["Software Engineer", "Data Scientist"]. '
+                        "No explanation, no markdown, no extra text."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.3,
+        )
+        raw = response.choices[0].message.content.strip()
+        parsed = ast.literal_eval(raw)
+        if isinstance(parsed, list) and all(isinstance(t, str) for t in parsed):
+            return parsed
+        raise ValueError(f"Unexpected AI response format: {raw}")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"AI title generation failed: {exc}",
+        )
+
+
+# ---------------------------------------------------------------------------
+# 3. Scrape jobs for each job title via JobSpy
+# ---------------------------------------------------------------------------
+def scrape_jobs_for_titles(
+    titles: list[str],
+    location: str,
+    sites: list[str],
+    results_wanted: int,
+    hours_old: int,
+) -> pd.DataFrame:
+    """
+    Iterates over job titles, scrapes each, and returns a combined DataFrame.
+    Raises HTTPException(404) if no results are found at all.
+    """
+    try:
+        from jobspy import scrape_jobs
+    except ValueError as exc:
+        if "numpy.dtype size changed" in str(exc):
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    "NumPy/JobSpy version conflict. Fix with: "
+                    "pip install 'numpy>=2.0.0' --force-reinstall && "
+                    "pip install pandas --force-reinstall"
+                ),
+            )
+        raise
+
+    frames: list[pd.DataFrame] = []
+
+    def _scrape(term: str, site: str) -> pd.DataFrame | None:
+        """Scrape a single term/site combination â€” runs in a thread."""
+        try:
+            df = scrape_jobs(
+                site_name=[site],
+                search_term=term,
+                location=location,
+                results_wanted=results_wanted,
+                hours_old=hours_old,
+                country_indeed="USA",
+            )
+            return df if not df.empty else None
+        except Exception as exc:
+            print(f"[scrape_jobs] Error for term='{term}' site='{site}': {exc}")
+            return None
+
+    for term in set(titles):  # deduplicate titles
+        for site in sites:
+            print(f"[scrape_jobs] Scraping term='{term}' site='{site}' ...")
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(_scrape, term, site)
+                try:
+                    df = future.result(timeout=SCRAPE_TIMEOUT)
+                    if df is not None:
+                        df["_search_term"] = term
+                        frames.append(df)
+                        print(f"[scrape_jobs] Got {len(df)} results for term='{term}' site='{site}'")
+                except FuturesTimeoutError:
+                    print(f"[scrape_jobs] Timed out after {SCRAPE_TIMEOUT}s for term='{term}' site='{site}', skipping.")
+
+    valid_frames = [f for f in frames if not f.empty and not f.isna().all().all()]
+
+    if not valid_frames:
+        raise HTTPException(
+            status_code=404,
+            detail="No jobs found for the provided skills / location.",
+        )
+
+    return pd.concat(valid_frames, ignore_index=True)
+
+
+# ---------------------------------------------------------------------------
+# 4. Format one job row into the target DB JSON schema
+# ---------------------------------------------------------------------------
+def format_job_entry(job_row: pd.Series) -> dict:
+    """Map a single JobSpy DataFrame row to the JobPostings entry structure."""
+
+    def to_list_or_empty(value) -> list:
+        if value is None or (isinstance(value, float) and pd.isna(value)) or value == "":
+            return []
+        return [str(value)]
+
+    def safe_str(value) -> str:
+        if value is None or (isinstance(value, float) and pd.isna(value)):
+            return ""
+        return str(value)
+
+    # Resolve the best URL and derive the domain from it
+    direct_url = job_row.get("job_url_direct")
+    fallback_url = job_row.get("job_url")
+    best_url = (
+        direct_url if pd.notna(direct_url)
+        else fallback_url if pd.notna(fallback_url)
+        else None
+    )
+    domain = urlparse(best_url).netloc if best_url else "unknown.com"
+
+    # Description
+    description = job_row.get("description", "")
+    if not description or pd.isna(description):
+        description = "No description provided."
+
+    # Date posted â€” normalise to ISO string
+    date_posted_str = None
+    raw_date = job_row.get("date_posted")
+    if raw_date is not None and pd.notna(raw_date):
+        if isinstance(raw_date, (datetime, date, pd.Timestamp)):
+            date_posted_str = pd.Timestamp(raw_date).isoformat()
+        else:
+            date_posted_str = str(raw_date)
+
+
+    # ðŸ”¥ IMPROVED keyword extraction (safe + better)
+
+    title = job_row.get("title") or ""
+    description = description or ""
+
+    text_blob = f"{title} {description}".lower()
+
+    # basic cleanup
+    words = [w.strip(".,()/-") for w in text_blob.split() if len(w) > 2]
+
+    # remove useless words
+    stopwords = {"the", "and", "for", "with", "from", "this", "that", "you", "are"}
+    keywords = list(set([w for w in words if w not in stopwords]))[:30]
+
+    return {
+        "title": job_row.get("title") or "Untitled Job",
+        "datePosted": date_posted_str or "",
+        "dateExtracted": datetime.now().isoformat(),
+        "dateExpiring": "",
+        "domain": domain,
+        "company": job_row.get("company") or "Unknown Company",
+        "locationC": to_list_or_empty(job_row.get("location")),
+        "salaryRangeC": to_list_or_empty(job_row.get("salary_range")),
+        "jobTypeC": to_list_or_empty(job_row.get("job_type")),
+        "industryC": [],
+        "experienceLevelC": [],
+        "remoteC": to_list_or_empty(job_row.get("work_from_home_type")),
+        "companySizeC": safe_str(job_row.get("company_num_employees")),
+        "text": str(description),
+        "url": str(best_url) if best_url else "",
+        "keywords": keywords,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 5. POST every job to the external DB and return per-job results
+# ---------------------------------------------------------------------------
+async def insert_jobs_to_db(jobs_df: pd.DataFrame) -> list[dict]:
+    """
+    Formats and POSTs each row to EXTERNAL_API_ENDPOINT.
+    Returns a list of result dicts: {title, status, http_code?, message?}
+    """
+    results: list[dict] = []
+
+    async with httpx.AsyncClient(timeout=3) as http:
+        for _, row in jobs_df.iterrows():
+            entry = format_job_entry(row)
+            payload = {"collection_name": COLLECTION_NAME, "entry": entry}
+            title = entry["title"]
+            try:
+                resp = await http.post(EXTERNAL_API_ENDPOINT, json=payload)
+                resp.raise_for_status()
+                results.append({
+                    "title": title,
+                    "status": "success",
+                    "http_code": resp.status_code,
+                })
+            except httpx.RequestError as exc:
+                results.append({"title": title, "status": "failed", "message": str(exc)})
+            except httpx.HTTPStatusError as exc:
+                results.append({
+                    "title": title,
+                    "status": "failed",
+                    "http_code": exc.response.status_code,
+                    "message": exc.response.text,
+                })
+            except Exception as exc:
+                results.append({"title": title, "status": "error", "message": str(exc)})
+
+    return results
+
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\JobScraper\test.py =====
+import requests
+
+files = {
+    "skills_file": open("skills.txt", "rb")
+}
+
+res = requests.post("http://127.0.0.1:8002/scrape-jobs", files=files)
+
+print("Status:", res.status_code)
+print(res.json())
+

@@ -22,7 +22,6 @@ class DBManagement:
         load_dotenv()
         self.client = MongoClient(
             os.getenv("MONGODB_URI"), 
-            tlsCAFile=certifi.where(),
             serverSelectionTimeoutMS=5000,
             connectTimeoutMS=5000,
             socketTimeoutMS=5000

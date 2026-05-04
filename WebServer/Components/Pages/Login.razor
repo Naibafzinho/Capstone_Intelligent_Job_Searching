@@ -17,7 +17,7 @@
 		<h1>Welcome back</h1>
 		<p class="subtitle">Sign in to your account</p>
 
-		<form @onsubmit=LoginAttempt>
+		<form @onsubmit=LoginAttempt @onsubmit:preventDefault>
 			<!--Username input field-->
 			<div class="field">
 				<label for="username">Username</label>

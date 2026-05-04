@@ -14,6 +14,12 @@ Install dependencies:
     pip install fastapi uvicorn python-jobspy openai httpx pandas python-dotenv
 """
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+print("GROQ KEY:", os.getenv("GROQ_API_KEY"))
+
 from typing import Annotated
 
 import pandas as pd

@@ -166,12 +166,14 @@ internal class SessionManager(ResumeDisplayer resumeDisplayer) {
 			using JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
 
 			// Get the success property if possible.
-			if (responseJSON.RootElement.TryGetProperty("result", out JsonElement resultElement) && resultElement.TryGetProperty("success", out JsonElement successElement)) {
-				// Auto-login on successful signup
-				if (successElement.GetBoolean()) {
-					authenticated = true;
-					return true;
-				}
+			
+			if (responseJSON.RootElement.TryGetProperty("result", out JsonElement resultElement)){
+					// If result is a string → it is inserted_id → SUCCESS
+					if (resultElement.ValueKind == JsonValueKind.String)
+					{
+						authenticated = true;
+						return true;
+					}
 			}
 
 			// Return false by default.

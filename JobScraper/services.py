@@ -219,6 +219,21 @@ def format_job_entry(job_row: pd.Series) -> dict:
         else:
             date_posted_str = str(raw_date)
 
+
+    # 🔥 IMPROVED keyword extraction (safe + better)
+
+    title = job_row.get("title") or ""
+    description = description or ""
+
+    text_blob = f"{title} {description}".lower()
+
+    # basic cleanup
+    words = [w.strip(".,()/-") for w in text_blob.split() if len(w) > 2]
+
+    # remove useless words
+    stopwords = {"the", "and", "for", "with", "from", "this", "that", "you", "are"}
+    keywords = list(set([w for w in words if w not in stopwords]))[:30]
+
     return {
         "title": job_row.get("title") or "Untitled Job",
         "datePosted": date_posted_str or "",
@@ -235,7 +250,7 @@ def format_job_entry(job_row: pd.Series) -> dict:
         "companySizeC": safe_str(job_row.get("company_num_employees")),
         "text": str(description),
         "url": str(best_url) if best_url else "",
-        "keywords": [],
+        "keywords": keywords,
     }
 
 

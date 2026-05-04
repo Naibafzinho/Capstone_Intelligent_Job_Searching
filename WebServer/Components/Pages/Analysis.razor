@@ -1,8 +1,92 @@
-@page "/analysis"
-@inherits Redirect
+@page "/analysis/{resumeId}"
+@inject HttpClient http
+@inject NavigationManager navigationManager
 
 <PageTitle>Analysis</PageTitle>
 
 <div class="analysis-wrapper">
-	
+
+	@if (loading)
+	{
+		<p>Analyzing resume...</p>
+	}
+	else if (error != "")
+	{
+		<p style="color:red">@error</p>
+	}
+	else
+	{
+		<h2>Extracted Skills</h2>
+
+		@if (keywords.Count == 0)
+		{
+			<p>No skills found.</p>
+		}
+		else
+		{
+			<ul>
+				@foreach (var skill in keywords)
+				{
+					<li>@skill</li>
+				}
+			</ul>
+		}
+	}
+
 </div>
+
+@code {
+	[Parameter]
+	public string resumeId { get; set; }
+
+	private bool loading = true;
+	private string error = "";
+	private List<string> keywords = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var fetchResponse = await http.PostAsJsonAsync(
+				"http://localhost:8000/fetch",
+				new
+				{
+					collection_name = "Resumes",
+					filter = new { _id = resumeId },
+					projection = new { extractedKeywords = 1 }
+				}
+			);
+
+			var json = await fetchResponse.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+
+			if (json.TryGetProperty("result", out var resultArray))
+			{
+				if (resultArray.ValueKind == System.Text.Json.JsonValueKind.Array &&
+					resultArray.GetArrayLength() > 0)
+				{
+					var resume = resultArray[0];
+
+					if (resume.TryGetProperty("extractedKeywords", out var keywordsArray) &&
+						keywordsArray.ValueKind == System.Text.Json.JsonValueKind.Array)
+					{
+						foreach (var k in keywordsArray.EnumerateArray())
+						{
+							var skill = k.GetString();
+							if (!string.IsNullOrEmpty(skill))
+							{
+								keywords.Add(skill);
+							}
+						}
+					}
+				}
+			}
+
+			loading = false;
+		}
+		catch (Exception ex)
+		{
+			error = ex.Message;
+			loading = false;
+		}
+	}
+}

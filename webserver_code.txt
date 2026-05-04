@@ -1,0 +1,3271 @@
+﻿===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Layout\MainLayout.razor =====
+@inherits LayoutComponentBase
+
+@inject SessionManager sessionManager
+
+<div class="page">
+	<header>
+		@if (sessionManager.IsAuthenticated()) { <Navbar /> }
+	</header>
+
+	<main>
+		<article class="content px-4">
+			@Body
+		</article>
+	</main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+	An unhandled error has occurred.
+	<a href="." class="reload">Reload</a>
+	<span class="dismiss">🗙</span>
+</div>
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Layout\MainLayout.razor.css =====
+.top-row {
+	background-color: #f7f7f7;
+	border-bottom: 1px solid #d6d5d5;
+	justify-content: flex-end;
+	height: 3.5rem;
+	display: flex;
+	align-items: center;
+}
+
+.top-row ::deep a,
+.top-row ::deep .btn-link {
+	white-space: nowrap;
+	margin-left: 1.5rem;
+	text-decoration: none;
+}
+
+.top-row ::deep a:hover,
+.top-row ::deep .btn-link:hover {
+	text-decoration: underline;
+}
+
+.top-row ::deep a:first-child {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+@media (max-width: 640.98px) {
+	.top-row {
+		justify-content: space-between;
+	}
+
+	.top-row ::deep a,
+	.top-row ::deep .btn-link {
+		margin-left: 0;
+	}
+}
+
+@media (min-width: 641px) {
+	.page {
+		flex-direction: row;
+	}
+
+	.top-row {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+	}
+
+	.top-row.auth ::deep a:first-child {
+		flex: 1;
+		text-align: right;
+		width: 0;
+	}
+
+	.top-row,
+	article {
+		padding-left: 2rem !important;
+		padding-right: 1.5rem !important;
+	}
+}
+
+#blazor-error-ui {
+	color-scheme: light only;
+	background: lightyellow;
+	bottom: 0;
+	box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+	box-sizing: border-box;
+	display: none;
+	left: 0;
+	padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+	position: fixed;
+	width: 100%;
+	z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+	cursor: pointer;
+	position: absolute;
+	right: 0.75rem;
+	top: 0.5rem;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Layout\ReconnectModal.razor =====
+<script type="module" src="@Assets["Components/Layout/ReconnectModal.razor.js"]"></script>
+
+<dialog id="components-reconnect-modal" data-nosnippet>
+    <div class="components-reconnect-container">
+        <div class="components-rejoining-animation" aria-hidden="true">
+            <div></div>
+            <div></div>
+        </div>
+        <p class="components-reconnect-first-attempt-visible">
+            Rejoining the server...
+        </p>
+        <p class="components-reconnect-repeated-attempt-visible">
+            Rejoin failed... trying again in <span id="components-seconds-to-next-attempt"></span> seconds.
+        </p>
+        <p class="components-reconnect-failed-visible">
+            Failed to rejoin.<br />Please retry or reload the page.
+        </p>
+        <button id="components-reconnect-button" class="components-reconnect-failed-visible">
+            Retry
+        </button>
+        <p class="components-pause-visible">
+            The session has been paused by the server.
+        </p>
+        <p class="components-resume-failed-visible">
+            Failed to resume the session.<br />Please retry or reload the page.
+        </p>
+        <button id="components-resume-button" class="components-pause-visible components-resume-failed-visible">
+            Resume
+        </button>
+    </div>
+</dialog>
+
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Layout\ReconnectModal.razor.css =====
+.components-reconnect-first-attempt-visible,
+.components-reconnect-repeated-attempt-visible,
+.components-reconnect-failed-visible,
+.components-pause-visible,
+.components-resume-failed-visible,
+.components-rejoining-animation {
+    display: none;
+}
+
+#components-reconnect-modal.components-reconnect-show .components-reconnect-first-attempt-visible,
+#components-reconnect-modal.components-reconnect-show .components-rejoining-animation,
+#components-reconnect-modal.components-reconnect-paused .components-pause-visible,
+#components-reconnect-modal.components-reconnect-resume-failed .components-resume-failed-visible,
+#components-reconnect-modal.components-reconnect-retrying,
+#components-reconnect-modal.components-reconnect-retrying .components-reconnect-repeated-attempt-visible,
+#components-reconnect-modal.components-reconnect-retrying .components-rejoining-animation,
+#components-reconnect-modal.components-reconnect-failed,
+#components-reconnect-modal.components-reconnect-failed .components-reconnect-failed-visible {
+    display: block;
+}
+
+
+#components-reconnect-modal {
+    background-color: white;
+    width: 20rem;
+    margin: 20vh auto;
+    padding: 2rem;
+    border: 0;
+    border-radius: 0.5rem;
+    box-shadow: 0 3px 6px 2px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: display 0.5s allow-discrete, overlay 0.5s allow-discrete;
+    animation: components-reconnect-modal-fadeOutOpacity 0.5s both;
+    &[open]
+
+{
+    animation: components-reconnect-modal-slideUp 1.5s cubic-bezier(.05, .89, .25, 1.02) 0.3s, components-reconnect-modal-fadeInOpacity 0.5s ease-in-out 0.3s;
+    animation-fill-mode: both;
+}
+
+}
+
+#components-reconnect-modal::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+    animation: components-reconnect-modal-fadeInOpacity 0.5s ease-in-out;
+    opacity: 1;
+}
+
+@keyframes components-reconnect-modal-slideUp {
+    0% {
+        transform: translateY(30px) scale(0.95);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes components-reconnect-modal-fadeInOpacity {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes components-reconnect-modal-fadeOutOpacity {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.components-reconnect-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+#components-reconnect-modal p {
+    margin: 0;
+    text-align: center;
+}
+
+#components-reconnect-modal button {
+    border: 0;
+    background-color: #6b9ed2;
+    color: white;
+    padding: 4px 24px;
+    border-radius: 4px;
+}
+
+    #components-reconnect-modal button:hover {
+        background-color: #3b6ea2;
+    }
+
+    #components-reconnect-modal button:active {
+        background-color: #6b9ed2;
+    }
+
+.components-rejoining-animation {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+    .components-rejoining-animation div {
+        position: absolute;
+        border: 3px solid #0087ff;
+        opacity: 1;
+        border-radius: 50%;
+        animation: components-rejoining-animation 1.5s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+
+        .components-rejoining-animation div:nth-child(2) {
+            animation-delay: -0.5s;
+        }
+
+@keyframes components-rejoining-animation {
+    0% {
+        top: 40px;
+        left: 40px;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+
+    4.9% {
+        top: 40px;
+        left: 40px;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+
+    5% {
+        top: 40px;
+        left: 40px;
+        width: 0;
+        height: 0;
+        opacity: 1;
+    }
+
+    100% {
+        top: 0px;
+        left: 0px;
+        width: 80px;
+        height: 80px;
+        opacity: 0;
+    }
+}
+
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Layout\ReconnectModal.razor.js =====
+// Set up event handlers
+const reconnectModal = document.getElementById("components-reconnect-modal");
+reconnectModal.addEventListener("components-reconnect-state-changed", handleReconnectStateChanged);
+
+const retryButton = document.getElementById("components-reconnect-button");
+retryButton.addEventListener("click", retry);
+
+const resumeButton = document.getElementById("components-resume-button");
+resumeButton.addEventListener("click", resume);
+
+function handleReconnectStateChanged(event) {
+    if (event.detail.state === "show") {
+        reconnectModal.showModal();
+    } else if (event.detail.state === "hide") {
+        reconnectModal.close();
+    } else if (event.detail.state === "failed") {
+        document.addEventListener("visibilitychange", retryWhenDocumentBecomesVisible);
+    } else if (event.detail.state === "rejected") {
+        location.reload();
+    }
+}
+
+async function retry() {
+    document.removeEventListener("visibilitychange", retryWhenDocumentBecomesVisible);
+
+    try {
+        // Reconnect will asynchronously return:
+        // - true to mean success
+        // - false to mean we reached the server, but it rejected the connection (e.g., unknown circuit ID)
+        // - exception to mean we didn't reach the server (this can be sync or async)
+        const successful = await Blazor.reconnect();
+        if (!successful) {
+            // We have been able to reach the server, but the circuit is no longer available.
+            // We'll reload the page so the user can continue using the app as quickly as possible.
+            const resumeSuccessful = await Blazor.resumeCircuit();
+            if (!resumeSuccessful) {
+                location.reload();
+            } else {
+                reconnectModal.close();
+            }
+        }
+    } catch (err) {
+        // We got an exception, server is currently unavailable
+        document.addEventListener("visibilitychange", retryWhenDocumentBecomesVisible);
+    }
+}
+
+async function resume() {
+    try {
+        const successful = await Blazor.resumeCircuit();
+        if (!successful) {
+            location.reload();
+        }
+    } catch {
+        reconnectModal.classList.replace("components-reconnect-paused", "components-reconnect-resume-failed");
+    }
+}
+
+async function retryWhenDocumentBecomesVisible() {
+    if (document.visibilityState === "visible") {
+        await retry();
+    }
+}
+
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Analysis.razor =====
+@page "/analysis/{resumeId}"
+@inject HttpClient http
+@inject NavigationManager navigationManager
+
+<PageTitle>Analysis</PageTitle>
+
+<div class="analysis-wrapper">
+
+	@if (loading)
+	{
+		<p>Analyzing resume...</p>
+	}
+	else if (error != "")
+	{
+		<p style="color:red">@error</p>
+	}
+	else
+	{
+		<h2>Extracted Skills</h2>
+
+		@if (keywords.Count == 0)
+		{
+			<p>No skills found.</p>
+		}
+		else
+		{
+			<ul>
+				@foreach (var skill in keywords)
+				{
+					<li>@skill</li>
+				}
+			</ul>
+		}
+	}
+
+</div>
+
+@code {
+	[Parameter]
+	public string resumeId { get; set; }
+
+	private bool loading = true;
+	private string error = "";
+	private List<string> keywords = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var fetchResponse = await http.PostAsJsonAsync(
+				"http://localhost:8000/fetch",
+				new
+				{
+					collection_name = "Resumes",
+					filter = new { _id = resumeId },
+					projection = new { extractedKeywords = 1 }
+				}
+			);
+
+			var json = await fetchResponse.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+
+			if (json.TryGetProperty("result", out var resultArray))
+			{
+				if (resultArray.ValueKind == System.Text.Json.JsonValueKind.Array &&
+					resultArray.GetArrayLength() > 0)
+				{
+					var resume = resultArray[0];
+
+					if (resume.TryGetProperty("extractedKeywords", out var keywordsArray) &&
+						keywordsArray.ValueKind == System.Text.Json.JsonValueKind.Array)
+					{
+						foreach (var k in keywordsArray.EnumerateArray())
+						{
+							var skill = k.GetString();
+							if (!string.IsNullOrEmpty(skill))
+							{
+								keywords.Add(skill);
+							}
+						}
+					}
+				}
+			}
+
+			loading = false;
+		}
+		catch (Exception ex)
+		{
+			error = ex.Message;
+			loading = false;
+		}
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Edit.razor =====
+@page "/edit"
+@inherits Redirect
+
+<PageTitle>Edit</PageTitle>
+
+<div class="edit-wrapper">
+
+	<div class="container">
+
+		<!-- Resume Name -->
+		<div class="resumeName">
+			<label>Resume Name:</label>
+			<input type="text" id="resumeTitle" value="Resume1">
+
+		</div>
+
+		<!-- Filters -->
+		<div class="filters">
+			<h3>Set Filters</h3>
+
+			<select id="location" @bind=selectedLocation>
+				<option value="">Filter Location</option>
+				<option value="Sub10Miles">&lt;10 miles</option>
+				<option value="Sub25Miles">&lt;25 miles</option>
+				<option value="Sub50Miles">&lt;50 miles</option>
+				<option value="Sub100Miles">&lt;100 miles</option>
+			</select>
+
+			<select id="salary" @bind=selectedSalary>
+				<option value="">Filter Salary</option>
+				<option value="Sub20K">&lt;$20,000</option>
+				<option value="From20KTo50K">$20,000-$50,000</option>
+				<option value="From50KTo80K">$50,000-$80,000</option>
+				<option value="Over80K">>$80,000</option>
+			</select>
+
+			<select id="experience" @bind=selectedExperience>
+				<option value="">Filter Experience</option>
+				<option value="Intern">Internship</option>
+				<option value="Entry">Entry-Level</option>
+				<option value="MidLevel">Mid-Level</option>
+				<option value="Senior">Senior Level</option>
+			</select>
+
+			<button @onclick=SaveAll>Save All</button>
+		</div>
+
+		<!-- Skills Section -->
+		<div class="skills">
+
+			<!-- Extracted Skills -->
+			<div class="skills-box">
+				<h2>Skills Extracted</h2>
+
+				<input type="text" id="skillInput" placeholder="Add skill...">
+				<button @onclick=AddSkill>Add</button>
+
+				<div id="skillsList"></div>
+			</div>
+
+		</div>
+
+	</div>
+
+</div>
+
+@code {
+	/// <summary>
+	/// The location option currently selected by the user (null if no selection).
+	/// </summary>
+	private Location? selectedLocation;
+	/// <summary>
+	/// The salary option currently selected by the user (null if no selection).
+	/// </summary>
+	private Salary? selectedSalary;
+	/// <summary>
+	/// The experience option currently selected by the user (null if no selection).
+	/// </summary>
+	private Experience? selectedExperience;
+	
+	private void SaveAll() {
+		// TODO: Save selected filters (and resume name?) to DB.
+	}
+
+	private void AddSkill() {
+		// TODO: Add skill in skills box to DB.
+	}
+
+	private enum Location { Sub10Miles, Sub25Miles, Sub50Miles, Sub100Miles }
+	private enum Salary { Sub20K, From20KTo50K, From50KTo80K, Over80K }
+	private enum Experience { Intern, Entry, MidLevel, Senior }
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Edit.razor.css =====
+/* Base Style */
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	background-color: #f4f6f9;
+}
+
+/* Layout */
+.container {
+	padding: 20px;
+}
+
+/* Resume Name */
+.resumeName {
+	margin-bottom: 20px;
+}
+
+.resumeName input {
+	padding: 8px;
+	border-radius: 5px;
+	border: 1px solid #ccc;
+}
+
+/* Filters */
+.filters {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+.filters select {
+	padding: 8px;
+	border-radius: 5px;
+}
+
+/* Skills Section */
+.skills {
+	display: flex;
+	gap: 20px;
+}
+
+/* Boxes */
+.skills-box {
+	flex: 1;
+	background: white;
+	padding: 15px;
+	border-radius: 10px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Items */
+.skill-item {
+	padding: 8px;
+	margin: 6px 0;
+	background: #ecf0f1;
+	border-radius: 5px;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Error.razor =====
+@page "/Error"
+@using System.Diagnostics
+
+<PageTitle>Error</PageTitle>
+
+<h1 class="text-danger">Error.</h1>
+<h2 class="text-danger">An error occurred while processing your request.</h2>
+
+@if (ShowRequestId) {
+	<p>
+		<strong>Request ID:</strong> <code>@RequestId</code>
+	</p>
+}
+
+<h3>Development Mode</h3>
+<p>
+	Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+</p>
+<p>
+	<strong>The Development environment shouldn't be enabled for deployed applications.</strong>
+	It can result in displaying sensitive information from exceptions to end users.
+	For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong>
+	environment variable to <strong>Development</strong> and restarting the app.
+</p>
+
+@code {
+	[CascadingParameter]
+	private HttpContext? HttpContext { get; set; }
+
+	private string? RequestId { get; set; }
+	private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+	protected override void OnInitialized() => RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Home.razor =====
+@page "/"
+@inject NavigationManager navigationManager
+@inject SessionManager sessionManager
+@inject ResumeDisplayer resumeDisplayer
+
+<PageTitle>Home</PageTitle>
+
+@code {
+	// Redirect to login or home page based on authentication.
+	protected override void OnInitialized()	{
+		if (sessionManager.IsAuthenticated()) {
+			if (resumeDisplayer.GetResumes().Length > 0) {
+				navigationManager.NavigateTo("/resumes");
+			} else {
+				navigationManager.NavigateTo("/upload");
+			}
+			// TODO: Redirect to resumes page instead if current user has 1+ resumes.
+		} else {
+			navigationManager.NavigateTo("/login");
+		}
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Login.razor =====
+@page "/login"
+@inherits Redirect
+
+@inject NavigationManager navigationManager
+@inject SessionManager sessionManager
+
+<PageTitle>Login</PageTitle>
+
+<!--Outer wrapper to center the login card on the page-->
+<div class="login-wrapper">
+
+	<!--Logo display-->
+	<img src="resumelogo.png" alt="Logo" class="logo">
+
+	<!--Login card for all elements-->
+	<div class="login-card">
+		<h1>Welcome back</h1>
+		<p class="subtitle">Sign in to your account</p>
+
+		<form @onsubmit=LoginAttempt>
+			<!--Username input field-->
+			<div class="field">
+				<label for="username">Username</label>
+				<input type="text" id="username" @bind-value=username placeholder="Enter your username" />
+			</div>
+
+			<!--Password input field-->
+			<div class="field">
+				<label for="password">Password</label>
+				<input type="password" id="password" @bind-value=password placeholder="Enter your password" />
+			</div>
+
+			<span class="errortext">@errorMessage</span>
+		
+			<!--Submit button to sign in-->
+			<button type="submit">Sign in</button>
+		</form>
+
+		<!--Link to send users to sign-up page-->
+		<NavLink href="/signup" class="forgot">Don't have an account?</NavLink>
+
+	</div>
+
+</div>
+
+@code {
+	protected override void OnInitialized() {
+		invert = true;
+		base.OnInitialized();
+	}
+
+	/// <summary>
+	/// The username currently typed by the user.
+	/// </summary>
+	private string username = "";
+	/// <summary>
+	/// The password currently typed by the user.
+	/// </summary>
+	private string password = "";
+	/// <summary>
+	/// The currently displayed error message. Blank for no error.
+	/// </summary>
+	private string errorMessage = "";
+
+	/// <summary>
+	/// Attempts to login with the currently provided username and password. Redirects to home on success, displays error text on fail.
+	/// </summary>
+	private void LoginAttempt() {
+		bool success = sessionManager.AttemptLogin(username, password);
+		if (success) {
+			navigationManager.NavigateTo("/"); // Root auto-redirects to the appropriate home based on context.
+		} else {
+			errorMessage = "Invalid username/password. Please try again.";
+		}
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Login.razor.css =====
+/* Base Style */
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	background-color: #f4f6f9;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #1111e9;
+	font-family: sans-serif;
+}
+
+.login-card {
+	background: #ffffff;
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 2rem 2.25rem;
+	width: 100%;
+	max-width: 360px;
+}
+
+h1 {
+	font-size: 1.25rem;
+	font-weight: 500;
+	margin-bottom: 0.4rem;
+	color: #111;
+}
+
+.subtitle {
+	font-size: 0.85rem;
+	color: #666;
+	margin-bottom: 1.5rem;
+}
+
+label {
+	display: block;
+	font-size: 0.85rem;
+	color: #555;
+	margin-bottom: 5px;
+}
+
+.field {
+	margin-bottom: 1rem;
+}
+
+input[type="text"],
+input[type="password"] {
+	width: 100%;
+	padding: 9px 12px;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	font-size: 0.9rem;
+	outline: none;
+}
+
+input:focus {
+	border-color: #888;
+}
+
+button {
+	width: 100%;
+	padding: 10px;
+	margin-top: 0.5rem;
+	background-color: #111;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-size: 0.9rem;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+button:hover {
+	opacity: 0.85;
+}
+
+.forgot {
+	display: block;
+	text-align: center;
+	font-size: 0.79rem;
+	color: #888;
+	margin-top: 1rem;
+	text-decoration: none;
+}
+
+.login-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1.5rem;
+}
+
+.logo {
+	width: 600px;
+	height: auto;
+	margin-bottom: 2rem;
+	border-radius: 12px;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Matches.razor =====
+@page "/matches/{targetResumeID}"
+@inherits Redirect
+@inject HttpClient http
+
+<PageTitle>Matches</PageTitle>
+
+<div class="matches-wrapper">
+	@if (loading)
+	{
+		<p>Loading jobs...</p>
+	}
+	else if (!string.IsNullOrEmpty(error))
+	{
+		<p style="color:red">@error</p>
+	}
+	else
+	{
+		@foreach (JobListing job in jobListings)
+		{
+			<JobCard jobListing=job />
+		}
+	}
+</div>
+
+@code {
+	[Parameter]
+	public string? targetResumeID { get; set; }
+
+	public JobListing[] jobListings { get; set; } = [];
+
+	private bool loading = true;
+	private string error = "";
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var response = await http.PostAsJsonAsync(
+				"http://localhost:8000/fetch",
+				new
+				{
+					collection_name = "JobPostings",
+					filter = new { },
+					projection = new { }
+				}
+			);
+
+			var result = await response.Content.ReadFromJsonAsync<FetchResponse>();
+
+			if (result?.result != null)
+			{
+				jobListings = result.result.Select(job => new JobListing(
+					Title: job.title ?? "No Title",
+					CompanyName: job.company ?? "Unknown",
+					DatePosted: job.datePosted ?? "",
+					OriginalPostingSite: job.domain ?? "",
+					OriginalPostingLink: job.url ?? "",
+
+					// âœ… SAFE ARRAYS (FIX)
+					Industries: SafeArray(job.industryC),
+					ExperienceLevels: SafeArray(job.experienceLevelC),
+					EmploymentTypes: SafeArray(job.jobTypeC),
+					SalaryRanges: SafeArray(job.salaryRangeC),
+					Locations: SafeArray(job.locationC),
+					RemoteStatuses: SafeArray(job.remoteC),
+
+					CompanySizes: SafeArray(new string[] { job.companySizeC ?? "" }),
+
+					Description: job.text ?? "No description available"
+				)).ToArray();
+			}
+
+			loading = false;
+		}
+		catch (Exception ex)
+		{
+			error = ex.Message;
+			loading = false;
+		}
+	}
+
+	// =============================
+	// SAFE ARRAY HELPER (CRITICAL FIX)
+	// =============================
+	private string[] SafeArray(string[] arr)
+	{
+		if (arr == null || arr.Length == 0)
+			return new string[] { "" }; // prevents JobCard crash
+
+		return arr;
+	}
+
+	// =============================
+	// RESPONSE MODELS
+	// =============================
+	public class FetchResponse
+	{
+		public List<JobDB> result { get; set; }
+	}
+
+	public class JobDB
+	{
+		public string title { get; set; }
+		public string company { get; set; }
+		public string datePosted { get; set; }
+		public string domain { get; set; }
+		public string url { get; set; }
+		public string text { get; set; }
+
+		public string[] locationC { get; set; }
+		public string[] salaryRangeC { get; set; }
+		public string[] jobTypeC { get; set; }
+		public string[] industryC { get; set; }
+		public string[] experienceLevelC { get; set; }
+		public string[] remoteC { get; set; }
+		public string companySizeC { get; set; }
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Matches.razor.css =====
+.page-content {
+	max-width: 800px;
+	margin: 40px auto;
+	padding: 0 20px;
+}
+
+.back-link {
+	display: inline-block;
+	margin-bottom: 20px;
+	font-size: 0.9rem;
+	color: #1111e9;
+	text-decoration: none;
+}
+
+.back-link:hover {
+	text-decoration: underline;
+}
+
+.job-card {
+	background-color: white;
+	border-radius: 6px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	padding: 30px;
+}
+
+.job-top {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+	margin-bottom: 20px;
+}
+
+.company-logo {
+	width: 56px;
+	height: 56px;
+	border-radius: 6px;
+	border: 1px solid #e0e0e0;
+	background-color: #f4f6f9;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1rem;
+	font-weight: bold;
+	color: #555;
+	flex-shrink: 0;
+}
+
+.job-title-block {
+	flex: 1;
+}
+
+.job-title {
+	font-size: 1.4rem;
+	font-weight: bold;
+	margin: 0 0 4px;
+	color: #111;
+}
+
+.job-company {
+	font-size: 0.9rem;
+	color: #555;
+	margin: 0;
+}
+
+.job-company a {
+	color: #1111e9;
+	text-decoration: none;
+}
+
+.job-company a:hover {
+	text-decoration: underline;
+}
+
+.match-score {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.match-score-label {
+	font-size: 0.75rem;
+	color: #555;
+	margin-top: 4px;
+}
+
+.divider {
+	border: none;
+	border-top: 1px solid #e0e0e0;
+	margin: 20px 0;
+}
+
+.tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 20px;
+}
+
+.tag {
+	font-size: 0.8rem;
+	padding: 6px 14px;
+	border-radius: 6px;
+	font-family: Arial, sans-serif;
+}
+
+.tag-location {
+	background-color: #e6f4ea;
+	color: #1a6e35;
+}
+
+.tag-type {
+	background-color: #e8eaff;
+	color: #1111e9;
+}
+
+.tag-remote {
+	background-color: #f0e8ff;
+	color: #5c1ec9;
+}
+
+.tag-industry {
+	background-color: #f4f6f9;
+	color: #444;
+	border: 1px solid #ddd;
+}
+
+.tag-salary {
+	background-color: #eaf7f0;
+	color: #157a4a;
+}
+
+.section-label {
+	font-size: 0.75rem;
+	font-weight: bold;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #888;
+	margin: 0 0 10px;
+}
+
+.job-description {
+	font-size: 0.95rem;
+	line-height: 1.7;
+	color: #333;
+	margin: 0 0 20px;
+}
+
+.skills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.skill {
+	font-size: 0.8rem;
+	padding: 5px 12px;
+	border-radius: 6px;
+	border: 1px solid #ddd;
+	color: #444;
+	background-color: #f4f6f9;
+}
+
+.skill-missing {
+	background-color: #fff3f0;
+	border-color: #f0a090;
+	color: #b03010;
+}
+
+.skills-note {
+	font-size: 0.78rem;
+	color: #b03010;
+	margin: 0 0 20px;
+}
+
+.job-actions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	padding-top: 20px;
+	border-top: 1px solid #e0e0e0;
+}
+
+.btn {
+	padding: 12px 22px;
+	border-radius: 6px;
+	font-size: 0.9rem;
+	font-family: Arial, sans-serif;
+	cursor: pointer;
+	border: none;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	transition: transform 0.1s;
+}
+
+.btn:hover {
+	transform: scale(1.05);
+}
+
+.btn-primary {
+	background-color: #1111e9;
+	color: white;
+	flex: 1;
+}
+
+.btn-secondary {
+	background-color: white;
+	color: #111;
+	border: 1px solid #ddd;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\NotFound.razor =====
+@page "/not-found"
+@layout MainLayout
+
+<PageTitle>Page Not Found</PageTitle>
+
+<h3>Not Found</h3>
+<p>Sorry, the page you are looking for does not exist.</p>
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Resumes.razor =====
+@page "/resumes"
+@inherits Redirect
+@implements IDisposable
+
+@inject ResumeDisplayer resumeDisplayer
+
+<PageTitle>Resumes</PageTitle>
+
+<div class="page-header">
+	<h1>My Resumes</h1>
+</div>
+
+<div class="resumes-wrapper">
+	<!--Resume container to hold each resume-->
+	<div class="resumeContainer">
+		@foreach (Resume resume in resumeDisplayer.GetResumes()) { // Generates a ResumeBox component for each resume.
+			<ResumeBox targetResumeID=@resume.ResumeID Name=@resume.Filename />
+		}
+	</div>
+</div>
+
+@code {
+	protected override void OnInitialized() {
+		base.OnInitialized();
+		resumeDisplayer.ResumeListUpdated += Rerender;
+	}
+	public void Dispose() => resumeDisplayer.ResumeListUpdated -= Rerender;
+
+	/// <summary>
+	/// Re-renders this component if resume list is updated.
+	/// </summary>
+	private void Rerender() {
+		_ = InvokeAsync(StateHasChanged);
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Resumes.razor.css =====
+/* 
+.resumeContainer {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	margin-top: 50px;
+}
+*/
+
+.page {
+	max-width: 860px;
+	margin: 48px auto;
+	padding: 0 24px;
+}
+
+.page-header {
+	margin-bottom: 28px;
+}
+
+.page-header h1 {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #0a0a1a;
+	letter-spacing: -0.4px;
+}
+
+.page-header p {
+	font-size: 0.875rem;
+	color: #8892a4;
+	margin-top: 4px;
+}
+
+/* â”€â”€ Resume container â”€â”€ */
+.resumeContainer {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Signup.razor =====
+@page "/signup"
+@inherits Redirect
+
+@inject NavigationManager navigationManager
+@inject SessionManager sessionManager
+
+<PageTitle>Signup</PageTitle>
+
+<!--Outer wrapper to center the signup card on the page-->
+<div class="login-wrapper">
+		
+	<!--Logo display-->
+	<img src="resumelogo.png" alt="Logo" class="logo">
+
+	<!--Login card for all elements-->
+	<div class="login-card">
+		<h1>Welcome</h1>
+		<p class="subtitle">Create your account</p>
+		<form @onsubmit=SignupAttempt>
+			<!--Email input field-->
+			<div class="field">
+				<label for="email">Email</label>
+				<input type="email" id="email" @bind-value=email placeholder="Enter your email" />
+			</div>
+
+			<!--Username input field-->
+			<div class="field">
+				<label for="username">Username</label>
+				<input type="text" id="username" @bind-value=username placeholder="Enter your username" />
+			</div>
+
+			<!--Password input field-->
+			<div class="field">
+				<label for="password">Password</label>
+				<input type="password" id="password" @bind-value=password placeholder="Enter your password" />
+			</div>
+
+			<span class="errortext">@errorMessage</span>
+
+			<!--Submit button to sign up user-->
+			<button type="submit">Sign up</button>
+		</form>
+
+		<!--Link to send user to login page-->
+		<NavLink href="/login" class="forgot">Already have an account?</NavLink>
+	
+	</div>
+
+</div>
+
+@code {
+	protected override void OnInitialized() {
+		invert = true;
+		base.OnInitialized();
+	}
+
+	/// <summary>
+	/// The email currently typed by the user.
+	/// </summary>
+	private string email = "";
+	/// <summary>
+	/// The username currently typed by the user.
+	/// </summary>
+	private string username = "";
+	/// <summary>
+	/// The password currently typed by the user.
+	/// </summary>
+	private string password = "";
+	/// <summary>
+	/// The currently displayed error message. Blank for no error.
+	/// </summary>
+	private string errorMessage = "";
+
+	/// <summary>
+	/// Attempts to create a new account with the currently provided email, username, and password. Redirects to home on success, displays error text on fail.
+	/// </summary>
+	private void SignupAttempt() {
+		bool success = sessionManager.AttemptSignup(email, username, password);
+		if (success) {
+			navigationManager.NavigateTo("/"); // Root auto-redirects to the appropriate home based on context.
+		} else {
+			errorMessage = "Username already in use. Please try another username.";
+		}
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Signup.razor.css =====
+/* Base Style */
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	background-color: #f4f6f9;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #1111e9;
+	font-family: sans-serif;
+}
+
+.login-card {
+	background: #ffffff;
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 2rem 2.25rem;
+	width: 100%;
+	max-width: 360px;
+}
+
+h1 {
+	font-size: 1.25rem;
+	font-weight: 500;
+	margin-bottom: 0.4rem;
+	color: #111;
+}
+
+.subtitle {
+	font-size: 0.85rem;
+	color: #666;
+	margin-bottom: 1.5rem;
+}
+
+label {
+	display: block;
+	font-size: 0.85rem;
+	color: #555;
+	margin-bottom: 5px;
+}
+
+.field {
+	margin-bottom: 1rem;
+}
+
+input[type="email"],
+input[type="text"],
+input[type="password"] {
+	width: 100%;
+	padding: 9px 12px;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	font-size: 0.9rem;
+	outline: none;
+}
+
+input:focus {
+	border-color: #888;
+}
+
+button {
+	width: 100%;
+	padding: 10px;
+	margin-top: 0.5rem;
+	background-color: #111;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-size: 0.9rem;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+button:hover {
+	opacity: 0.85;
+}
+
+.forgot {
+	display: block;
+	text-align: center;
+	font-size: 0.79rem;
+	color: #888;
+	margin-top: 1rem;
+	text-decoration: none;
+}
+
+.login-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1.5rem;
+}
+
+.logo {
+	width: 600px;
+	height: auto;
+	margin-bottom: 2rem;
+	border-radius: 12px;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Upload.razor =====
+@page "/upload"
+@inherits Redirect
+
+@inject IJSRuntime JSRuntime
+@inject ResumeHandler resumeHandler
+@inject SessionManager sessionManager
+
+<PageTitle>Upload Resume</PageTitle>
+
+<div class="upload-wrapper">
+
+	<!--Upload Status-->
+	<p class="status" style="color: @statusColor;">@status</p>
+
+	<!--Upload Box for Resumes-->
+	<div class="upload-box" id="drop-area" @ondrop=UploadResume @ondragover:preventDefault>
+		<p>Drag & Drop or</p>
+		<button type="button" @onclick=BrowseFiles>Browse Files</button>
+		<InputFile OnChange=HandleFileSelection accept=".txt,.doc,.docx,.pdf" hidden />
+		<p id="fileName">@fileName</p>
+	</div>
+
+	<!--Upload Resume button for processing-->
+	<button type="button" class="uploadBtn" @onclick=UploadResume>Upload and Process</button>
+
+</div>
+
+@code {
+	/// <summary>
+	/// The currently uploaded resume file.
+	/// </summary>
+	private IBrowserFile? resumeFile;
+	/// <summary>
+	/// The currently uploaded resume filename.
+	/// </summary>
+	private string fileName = "";
+
+	/// <summary>
+	/// The current status message to display to user. Change via SetStatus(), not directly.
+	/// </summary>
+	private string status = "Select a resume file to upload (txt, doc, docx, or pdf).";
+	/// <summary>
+	/// The CSS color of the current status message. Change via SetStatus(), not directly.
+	/// </summary>
+	private string statusColor = "inherit"; // Inherit sets status text to default color.
+	enum StatusType { standard, success, failure }
+
+	/// <summary>
+	/// Sets the current status text.
+	/// </summary>
+	/// <param name="message">The message string.</param>
+	/// <param name="type">The type of message. Affects display color.</param>
+	private void SetStatus(string message, StatusType type = StatusType.standard) {
+		status = message;
+		statusColor = type switch {
+			StatusType.standard => "inherit",
+			StatusType.success => "green",
+			StatusType.failure => "#CC2533", // Failure red.
+			_ => "inherit"
+		};
+	}
+
+	/// <summary>
+	/// Opens the file upload window manually via JS interop.
+	/// </summary>
+	private async Task BrowseFiles() {
+		// TODO: Prevent user from interacting with webpage while upload window is open.
+		// Open file upload popup window, filter to valid filetypes.
+		await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('input[type=file]').click();");
+	}
+
+	/// <summary>
+	/// Runs when the user selects a file in the upload window.
+	/// </summary>
+	private void HandleFileSelection(InputFileChangeEventArgs args) {
+		resumeFile = args.File;
+		fileName = resumeFile.Name;
+		SetStatus("Resume file selected. Click \"Upload and Process\" to confirm.");
+	}
+
+	/// <summary>
+	/// Attempts to upload the selected resume. Redirects to resumes on success, displays error text on fail.
+	/// </summary>
+	private async Task UploadResume() {
+		if (resumeFile == null) return;
+
+		SetStatus("Uploading resume...");
+		try {
+			// Gets resume file as raw byte stream.
+			await using MemoryStream resumeBytes = new();
+			await resumeFile.OpenReadStream(0x_A0_00_00).CopyToAsync(resumeBytes); // Max filesize of 10MiB. This should be plenty for any normal resume.
+
+			// Validate filetype is TXT, DOC(X), or PDF. (This is far from perfect, but it should work well enough for now.)
+			FileType fileType;
+			if (Path.GetExtension(resumeFile.Name).ToLower() == ".txt") {
+				fileType = FileType.text; // Check TXT files by extension due to lack of guaranteed header.
+			} else {
+				resumeBytes.Position = 0; // Ensures byte stream is read from the beginning.
+				byte[] headerBytes = new byte[4];
+				resumeBytes.Read(headerBytes, 0, headerBytes.Length); // Get the first 4 bytes of the resume file.
+				fileType = headerBytes switch {
+					[0x50, 0x4B, 0x03, 0x04] => FileType.docx,	// Check for DOCX file header bytes (50 4B 03 04). WARNING: THIS ALSO ACCEPTS OTHER OFFICE FILETYPES SUCH AS XLSX.
+					[0xD0, 0xCF, 0x11, 0xE0] => FileType.doc,	// Check for DOC file header bytes (D0 CF 11 E0).
+					[0x25, 0x50, 0x44, 0x46] => FileType.pdf,	// Check for PDF file header bytes (25 50 44 46). WARNING: THIS MAY REJECT SOME PDFS WITH GARBAGE BEFORE "%PDF".
+					_ => FileType.other // Assume other filetype if extension not ".txt" and header bytes don't match DOC(X) or PDF.
+				};
+			}
+			if (fileType == FileType.other) {
+				SetStatus("Invalid filetype selected. Please upload a txt, docx, doc, or pdf file.", StatusType.failure);
+				return;
+			}
+
+			// Convert byte stream into a base64 string.
+			string resumeBytes64 = Convert.ToBase64String(resumeBytes.ToArray());
+
+			// Create resume record from input data.
+			string? userID = sessionManager.GetUserID();
+			if (userID == null) return; // Cancel upload if somehow session is not authenticated.
+			Resume resume = new(userID, null, fileName, resumeBytes64, DateTime.Today.ToString("d"), new ResumeConfig(
+				IndustryPreferences: ["Banking"],
+				ExperienceLevels: ["Entry-Level"],
+				EmploymentType: ["Full-Time"],
+				ExpectedSalaryRanges: ["$150,000 - $250,000"],
+				Locations: ["Altoona, PA"],
+				RemoteStatus: ["On-Ground"],
+				CompanySizes: ["Medium", "Large"],
+				Tags: [] // No tags.
+			));
+
+			// Sends resume bytes to ResumeUploader for API calls.
+			bool success = resumeHandler.UploadResume(resume);
+
+			if (success) {
+				SetStatus("Resume uploaded successfully! Go to the Resumes page to view results or edit job search parameters.", StatusType.success);
+			} else {
+				SetStatus("Resume upload failed. (We apologize for this unhelpful error, but this is an early build with WIP failure handling.)", StatusType.failure);
+			}
+		} catch {
+			SetStatus("Resume upload failed due to an exception.", StatusType.failure);
+		}
+	}
+
+	enum FileType { other, text, docx, doc, pdf }
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Upload.razor.css =====
+/* Upload Page */
+
+/* Dashed drop zone where users drag and drop their resume */
+.upload-box {
+	border: 2px dashed #999;
+	border-radius: 10px;
+	padding: 40px;
+	text-align: center;
+	width: 79%;
+	height: 300px;
+	margin: 40px auto;
+	background-color: #fafafa;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+}
+
+/* Highlight the drop zone when a file is dragged over it */
+.upload-box.dragover {
+	border-color: #007bff;
+	background-color: #f0f8ff;
+}
+
+/* Base button styles */
+button {
+	padding: 8px 16px;
+	cursor: pointer;
+}
+
+/* Upload submit button */
+.uploadBtn {
+	border: 1px solid #999;
+	border-radius: 10px;
+	padding: 8px 10px;
+	text-align: center;
+	width: 25%;
+	margin: 50px auto;
+	background-color: #fafafa;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+}
+
+/* Upload button transform */
+.uploadBtn:hover {
+	transform: scale(1.05);
+}
+
+/* Status message shown after upload */
+.status {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 35px;
+	font-size: 15pt;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Pages\Weather.razor =====
+@page "/weather"
+@attribute [StreamRendering]
+
+<PageTitle>Weather</PageTitle>
+
+<h1>Weather</h1>
+
+<p>This component demonstrates showing data.</p>
+
+@if (forecasts == null) {
+	<p><em>Loading...</em></p>
+} else {
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Date</th>
+				<th aria-label="Temperature in Celsius">Temp. (C)</th>
+				<th aria-label="Temperature in Fahrenheit">Temp. (F)</th>
+				<th>Summary</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var forecast in forecasts) {
+				<tr>
+					<td>@forecast.Date.ToShortDateString()</td>
+					<td>@forecast.TemperatureC</td>
+					<td>@forecast.TemperatureF</td>
+					<td>@forecast.Summary</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+	private WeatherForecast[]? forecasts;
+
+	protected override async Task OnInitializedAsync() {
+		// Simulate asynchronous loading to demonstrate streaming rendering
+		await Task.Delay(500);
+
+		var startDate = DateOnly.FromDateTime(DateTime.Now);
+		var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
+		forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast {
+			Date = startDate.AddDays(index),
+			TemperatureC = Random.Shared.Next(-20, 55),
+			Summary = summaries[Random.Shared.Next(summaries.Length)]
+		}).ToArray();
+	}
+
+	private class WeatherForecast {
+		public DateOnly Date { get; set; }
+		public int TemperatureC { get; set; }
+		public string? Summary { get; set; }
+		public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Subcomponents\JobCard.razor =====
+<div class="job-card">
+
+	<!--Company and job title-->
+	<div class="job-top">
+		<div class="company-logo">@employerName</div>
+		<div class="job-title-block">
+			<h1 class="job-title">@jobTitle</h1>
+			<p class="job-company">
+				<NavLink href=@employerLink target="_blank">@employerName</NavLink> &nbsp;Â·&nbsp; Posted @postedDaysAgo
+				days ago on @postOriginalSite
+			</p>
+		</div>
+
+		<!--Match score percentage-->
+		<div class="match-score">
+			<ProgressBarCircle Fill=@matchRatio />
+			<span class="match-score-label">match</span>
+		</div>
+	</div>
+
+	<!--Tags for location, salary, industry, etc-->
+	<div class="tags">
+		<span class="tag tag-industry">@tags["field"]</span>
+		<span class="tag tag-salary">@tags["salary"]</span>
+		<span class="tag tag-location">ðŸ“ @tags["location"]</span>
+		<span class="tag tag-type">@tags["employmentType"]</span>
+		<span class="tag tag-remote">@tags["remoteStatus"]</span>
+	</div>
+
+	<hr class="divider">
+
+	<!--Job description-->
+	<p class="section-label">About the role</p>
+	<p class="job-description">@description</p>
+
+	<hr class="divider">
+
+	<!--skills from job posting-->
+	<p class="section-label">Skills</p>
+	<p class="skills-note">Skills highlighted in orange are gaps based on your resume</p>
+	<div class="skills">
+		@foreach (string skill in skillsMatched)
+		{
+			<span class="skill">@skill</span>
+		}
+		@foreach (string skill in skillsMissing)
+		{
+			<span class="skill skill-missing">@skill</span>
+		}
+	</div>
+
+	<div class="job-actions">
+		<button class="btn btn-secondary" @onclick=SaveJob>Save job</button>
+		<NavLink class="btn btn-secondary" href=@jobLink target="_blank" role="button">View original posting</NavLink>
+	</div>
+
+</div>
+
+@code {
+	/// <summary>
+	/// This card's job listing data.
+	/// </summary>
+	[Parameter]
+	public required JobListing jobListing { get; set; }
+
+	private string jobTitle = "Loading...";
+	private string employerName = "Loading...";
+	private string employerLink;
+	private int postedDaysAgo = 0;
+	private string postOriginalSite = "Loading...";
+	private float matchRatio = 0.0f;
+	private Dictionary<string, string> tags = new();
+	private string description = "Loading...";
+	private string[] skillsMatched = ["Loading..."];
+	private string[] skillsMissing = [];
+	private string jobLink;
+
+	protected override void OnInitialized() {
+		base.OnInitialized();
+
+		jobTitle = jobListing.Title;
+		employerName = jobListing.CompanyName;
+		employerLink = "https://example.com/"; // TODO: Implement this (DB does not contain the necessary info at the time of this comment).
+		postedDaysAgo = 3; // TODO: Calculate from thisListing.DatePosted and current date (use System.DateTime).
+		postOriginalSite = "LinkedIn";
+		tags.Add("location", jobListing.Locations[0]); // TODO: List all of the below, not just the first element of each.
+		tags.Add("employmentType", jobListing.EmploymentTypes[0]);
+		tags.Add("remoteStatus", jobListing.RemoteStatuses[0]);
+		tags.Add("field", jobListing.Industries[0]);
+		tags.Add("salary", jobListing.SalaryRanges[0]);
+		description = jobListing.Description;
+		skillsMatched = ["Skill Display WIP"]; // TODO: Implement skill display (DB does not contain the necessary info at the time of this comment).
+		skillsMissing = ["Missing Skill Example"];
+		jobLink = jobListing.OriginalPostingLink;
+		matchRatio = 0.75f; // TODO: Set this from data.
+
+		/*jobTitle = "Senior Software Engineer";
+		employerName = "PNC";
+		employerLink = "https://www.pnc.com/en/personal-banking.html";
+		postedDaysAgo = 3;
+		postOriginalSite = "LinkedIn";
+		tags = new()
+		{
+			["location"] = "Pittsburgh, PA",
+			["employmentType"] = "Full-time",
+			["remoteStatus"] = "Hybrid",
+			["field"] = "Technology",
+			["salary"] = "$86k â€“ $112k / yr"
+			};
+		description = @"At PNC, our people are our greatest differentiator and competitive advantage in the markets we serve.
+						We are all united in delivering the best experience for our customers. We work together each day to
+						foster an inclusive workplace culture where all of our employees feel respected, valued and have an
+						opportunity to contribute to the companyâ€™s success. As a Senior Angular Developer within PNC's Lending
+						Tech organization, you will be based in Dallas, TX, Pittsburgh, PA, Strongsville, OH or Birmingham, AL.
+
+						Senior Angular (or equivalent frontâ€‘end) Developer to support our upcoming initiatives. The ideal
+						candidate should have extensive experience building scalable, highâ€‘performance web applications and
+						be comfortable driving technical decisions within a modern frontâ€‘end architecture.";
+		skillsMatched = ["Figma", "Design systems", "User research", "Prototyping", "Mobile (iOS / Android)"];
+		skillsMissing = ["Accessibility (WCAG)", "Data visualization"];
+		jobLink = "https://example.com/";*/
+	}
+
+	private void SaveJob() {
+		// TODO: Save this job posting to [where?].
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Subcomponents\JobCard.razor.css =====
+.page-content {
+	max-width: 800px;
+	margin: 40px auto;
+	padding: 0 20px;
+}
+
+.back-link {
+	display: inline-block;
+	margin-bottom: 20px;
+	font-size: 0.9rem;
+	color: #1111e9;
+	text-decoration: none;
+}
+
+.back-link:hover {
+	text-decoration: underline;
+}
+
+.job-card {
+	background-color: white;
+	border-radius: 6px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	padding: 30px;
+}
+
+.job-top {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+	margin-bottom: 20px;
+}
+
+.company-logo {
+	width: 56px;
+	height: 56px;
+	border-radius: 6px;
+	border: 1px solid #e0e0e0;
+	background-color: #f4f6f9;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1rem;
+	font-weight: bold;
+	color: #555;
+	flex-shrink: 0;
+}
+
+.job-title-block {
+	flex: 1;
+}
+
+.job-title {
+	font-size: 1.4rem;
+	font-weight: bold;
+	margin: 0 0 4px;
+	color: #111;
+}
+
+.job-company {
+	font-size: 0.9rem;
+	color: #555;
+	margin: 0;
+}
+
+.job-company a {
+	color: #1111e9;
+	text-decoration: none;
+}
+
+.job-company a:hover {
+	text-decoration: underline;
+}
+
+.match-score {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.match-score-label {
+	font-size: 0.75rem;
+	color: #555;
+	margin-top: 4px;
+}
+
+.divider {
+	border: none;
+	border-top: 1px solid #e0e0e0;
+	margin: 20px 0;
+}
+
+.tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 20px;
+}
+
+.tag {
+	font-size: 0.8rem;
+	padding: 6px 14px;
+	border-radius: 6px;
+	font-family: Arial, sans-serif;
+}
+
+.tag-location {
+	background-color: #e6f4ea;
+	color: #1a6e35;
+}
+
+.tag-type {
+	background-color: #e8eaff;
+	color: #1111e9;
+}
+
+.tag-remote {
+	background-color: #f0e8ff;
+	color: #5c1ec9;
+}
+
+.tag-industry {
+	background-color: #f4f6f9;
+	color: #444;
+	border: 1px solid #ddd;
+}
+
+.tag-salary {
+	background-color: #eaf7f0;
+	color: #157a4a;
+}
+
+.section-label {
+	font-size: 0.75rem;
+	font-weight: bold;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #888;
+	margin: 0 0 10px;
+}
+
+.job-description {
+	font-size: 0.95rem;
+	line-height: 1.7;
+	color: #333;
+	margin: 0 0 20px;
+}
+
+.skills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.skill {
+	font-size: 0.8rem;
+	padding: 5px 12px;
+	border-radius: 6px;
+	border: 1px solid #ddd;
+	color: #444;
+	background-color: #f4f6f9;
+}
+
+.skill-missing {
+	background-color: #fff3f0;
+	border-color: #f0a090;
+	color: #b03010;
+}
+
+.skills-note {
+	font-size: 0.78rem;
+	color: #b03010;
+	margin: 0 0 20px;
+}
+
+.job-actions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	padding-top: 20px;
+	border-top: 1px solid #e0e0e0;
+}
+
+.btn {
+	padding: 12px 22px;
+	border-radius: 6px;
+	font-size: 0.9rem;
+	font-family: Arial, sans-serif;
+	cursor: pointer;
+	border: none;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	transition: transform 0.1s;
+}
+
+.btn:hover {
+	transform: scale(1.05);
+}
+
+.btn-primary {
+	background-color: #1111e9;
+	color: white;
+	flex: 1;
+}
+
+.btn-secondary {
+	background-color: white;
+	color: #111;
+	border: 1px solid #ddd;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Subcomponents\Navbar.razor =====
+@inject NavigationManager navigationManager
+@inject SessionManager sessionManager
+
+<div>
+	<nav class="navbar">
+		<div class="navbar-inner">
+
+			<!-- Brand / Logo -->
+			<a href="/" class="navbar-brand">
+				<img src="resumelogo.png" alt="Logo">
+				<span class="brand-text">Job<span>Rush</span></span>
+			</a>
+
+			<!-- Nav links -->
+			<ul class="navbar-links">
+				<li>
+					<NavLink href="/upload">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+							<polyline points="17 8 12 3 7 8"/>
+							<line x1="12" y1="3" x2="12" y2="15"/>
+						</svg>
+						Upload
+					</NavLink>
+				</li>
+				<li>
+					<NavLink href="/resumes">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+							<polyline points="14 2 14 8 20 8"/>
+							<line x1="16" y1="13" x2="8" y2="13"/>
+							<line x1="16" y1="17" x2="8" y2="17"/>
+							<polyline points="10 9 9 9 8 9"/>
+						</svg>
+						Resumes
+					</NavLink>
+				</li>
+				<li class="logout">
+					<NavLink @onclick=Logout>
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+							<polyline points="16 17 21 12 16 7"/>
+							<line x1="21" y1="12" x2="9" y2="12"/>
+						</svg>
+						Logout
+					</NavLink>
+				</li>
+			</ul>
+
+		</div>
+	</nav>
+</div>
+
+@code {
+	private void Logout() {
+		sessionManager.Logout();
+		navigationManager.NavigateTo("/login", true); // True forces full page reload, resetting websocket and thus session.
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Subcomponents\Navbar.razor.css =====
+/*
+.navbar {
+	width: 100%;
+	background-color: #1111e9;
+	padding: 40px 0;
+}
+
+.navbar ul {
+	display: flex;
+	justify-content: space-evenly;
+	align-items: center;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	max-width: 10000px;
+}
+
+.navbar li {
+	background-color: white;
+	border-radius: 6px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+}
+
+::deep .navbar a {
+	text-decoration: none;
+	font-size: 1rem;
+	color: black;
+	display: inline-block;
+	padding: 15px 30px;
+}
+
+.navbar img {
+	height: 3.2rem;
+	border-radius: 10%;
+}
+
+.navbar li:hover {
+	transform: scale(1.05);
+}
+*/
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: 'Sora', sans-serif;
+	background: #f0f2f7;
+	min-height: 100vh;
+}
+
+/* â”€â”€ Navbar â”€â”€ */
+.navbar {
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background: #0202d6;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+	backdrop-filter: blur(12px);
+}
+
+.navbar-inner {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 0 24px;
+	height: 90px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+/* Brand */
+.navbar-brand {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	text-decoration: none;
+}
+
+.navbar-brand img {
+	height: 70px;
+	width: auto;
+}
+
+.navbar-brand .brand-text {
+	font-size: 1.25rem;
+	font-weight: 700;
+	letter-spacing: -0.5px;
+	color: #ffffff;
+}
+
+.navbar-brand .brand-text span {
+	color: #000000;
+}
+
+/* Nav links */
+.navbar-links {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	list-style: none;
+}
+
+::deep .navbar-links li a {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	text-decoration: none;
+	color: rgb(255, 255, 255);
+	font-size: 0.875rem;
+	font-weight: 500;
+	padding: 8px 14px;
+	border-radius: 8px;
+	transition: color 0.2s, background 0.2s;
+	white-space: nowrap;
+}
+
+::deep .navbar-links li a:hover {
+	color: #fff;
+	background: rgba(255, 255, 255, 0.08);
+}
+
+::deep .navbar-links li a svg {
+	opacity: 0.7;
+	transition: opacity 0.2s;
+}
+
+::deep .navbar-links li a:hover svg {
+	opacity: 1;
+}
+
+/* Logout is a pill button */
+::deep .navbar-links .logout a {
+	color: #f83c3c;
+	background: rgba(205, 14, 14, 0.08);
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	padding: 7px 16px;
+}
+
+::deep .navbar-links .logout a:hover {
+	background: rgba(255, 90, 90, 0.18);
+	color: #ff5a5a;
+}
+
+/* â”€â”€ Demo page content â”€â”€ */
+.page-content {
+	max-width: 700px;
+	margin: 80px auto;
+	padding: 0 24px;
+	text-align: center;
+	color: #555;
+	font-family: 'Sora', sans-serif;
+}
+
+.page-content h1 {
+	font-size: 1.6rem;
+	color: #111;
+	margin-bottom: 8px;
+}
+
+.page-content p {
+	font-size: 0.95rem;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Subcomponents\ProgressBarCircle.razor =====
+<svg viewBox="0 0 60 60" width="60" height="60">
+	<!-- Background circle -->
+    <circle cx="30" cy="30" r="24" fill="none" stroke="#e0e0e0" stroke-width="5" />
+	<!-- Foreground progress circle -->
+	<circle cx="30" cy="30" r="24" fill="none" stroke="#1a6e35" stroke-width="5" stroke-dasharray="150.8"
+		stroke-dashoffset="@((1 - Fill) * 150.8)" stroke-linecap="round" transform="rotate(-90 30 30)" />
+	<!-- Percentage text -->
+	<text x="30" y="35" text-anchor="middle" font-size="13" font-weight="bold" fill="#111" font-family="Arial">@((int)(Fill*100))%</text>
+</svg>
+
+@code {
+	[Parameter]
+	public float Fill { get; set; }
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Subcomponents\Redirect.cs =====
+using Microsoft.AspNetCore.Components;
+
+namespace JobRush.Components.Subcomponents;
+/// <summary>
+/// Automatically redirects on page load if unauthenticated, or if authenticated and Invert == true.
+/// </summary>
+public class Redirect : ComponentBase {
+	[Inject] private NavigationManager navigationManager { get; set; } = default!;
+	[Inject] private SessionManager sessionManager { get; set; } = default!;
+
+	protected bool invert = false;
+
+	protected override void OnInitialized() {
+		base.OnInitialized();
+		
+		// Redirect to home page if not authenticated, or if authenticated and invert == true.
+		if (sessionManager.IsAuthenticated() == invert) {
+			navigationManager.NavigateTo("/");
+		}
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Subcomponents\ResumeBox.razor =====
+@inject NavigationManager navigationManager
+@inject ResumeHandler resumeHandler
+@inject ResumeDisplayer resumeDisplayer
+
+<div class="resumeBox">
+	<div class="resume-left">
+		<div class="resume-icon">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+			</svg>
+		</div>
+		<input type="text" class="resumeTitleInput" value=@Name>
+	</div>
+
+	<div class="resume-divider"></div>
+
+	<div class="resume-actions">
+
+		<!-- ANALYZE BUTTON (FIXED) -->
+		<button class="btn-analysis" @onclick="AnalyzeResume">
+			Analysis
+		</button>
+
+		<NavLink href="@($"/matches/{targetResumeID}")" class="btn-matches">
+			Matches
+		</NavLink>
+
+		<NavLink href="/edit" class="btn-edit">
+			Edit
+		</NavLink>
+
+		<button class="btn-delete" @onclick=DeleteResume>
+			Delete
+		</button>
+
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public required string targetResumeID { get; set; }
+
+	[Parameter]
+	public required string Name { get; set; }
+
+	private void AnalyzeResume()
+	{
+		navigationManager.NavigateTo($"/analysis/{targetResumeID}");
+	}
+
+	private void DeleteResume()
+	{
+		Resume? thisResume = resumeDisplayer.GetResumeByID(targetResumeID);
+		if (thisResume == null) return;
+
+		resumeHandler.DeleteResume(thisResume);
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Subcomponents\ResumeBox.razor.css =====
+/*
+.resumeBox {
+	width: 95%;
+	max-width: 1000px;
+	background-color: #007bff;
+	padding: 15px;
+	margin: 0 auto;
+	border-radius: 10px;
+}
+
+.resumeBox ul {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	gap: 10px;
+}
+
+.resumeBox li {
+	display: flex;
+	align-items: center;
+}
+
+.resumeTitleInput {
+	margin-right: auto;
+	font-weight: bold;
+	background-color: white;
+	padding: 8px 14px;
+	border-radius: 6px;
+	border: none;
+}
+
+::deep a,
+button {
+	font-size: 16px;
+	color: black;
+	background-color: white;
+	padding: 8px 14px;
+	border-radius: 6px;
+	text-decoration: none;
+	border: none;
+	cursor: pointer;
+	transition: 0.2s ease;
+}
+
+
+::deep a:hover,
+button:hover {
+	transform: scale(1.05);
+}
+
+.deleteBtn {
+	background-color: #ff4d4d;
+	color: white;
+}
+*/
+
+.resumeBox {
+	background: #ffffff;
+	border: 1px solid #e4e8f0;
+	border-radius: 14px;
+	padding: 18px 20px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+	transition: box-shadow 0.2s, transform 0.2s;
+	animation: slideIn 0.3s ease both;
+}
+
+.resumeBox:nth-child(1) { animation-delay: 0.05s; }
+.resumeBox:nth-child(2) { animation-delay: 0.1s; }
+.resumeBox:nth-child(3) { animation-delay: 0.15s; }
+
+@keyframes slideIn {
+	from { opacity: 0; transform: translateY(10px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+
+.resumeBox:hover {
+	box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+	transform: translateY(-1px);
+}
+
+/* Left: doc icon + editable title */
+.resume-left {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex: 1;
+	min-width: 0;
+}
+
+.resume-icon {
+	width: 40px;
+	height: 40px;
+	background: #eef2ff;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	color: #4f7cff;
+}
+
+.resumeTitleInput {
+	font-family: 'Sora', sans-serif;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #0a0a1a;
+	background: transparent;
+	border: none;
+	outline: none;
+	width: 100%;
+	min-width: 0;
+	padding: 4px 6px;
+	border-radius: 6px;
+	transition: background 0.15s;
+}
+
+.resumeTitleInput:hover {
+	background: #f4f6fb;
+}
+
+.resumeTitleInput:focus {
+	background: #eef2ff;
+	color: #4f7cff;
+}
+
+/* Right: action buttons */
+.resume-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+::deep .resume-actions a,
+.resume-actions button {
+	font-family: 'Sora', sans-serif;
+	font-size: 0.8rem;
+	font-weight: 500;
+	text-decoration: none;
+	padding: 7px 14px;
+	border-radius: 8px;
+	border: none;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s, transform 0.15s;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+
+/* Analysis */
+.btn-analysis {
+	color: #4f7cff;
+	background: #eef2ff;
+}
+.btn-analysis:hover {
+	background: #dce6ff;
+	transform: translateY(-1px);
+}
+
+/* Matches */
+.btn-matches {
+	color: #0ea87a;
+	background: #e6f9f3;
+}
+.btn-matches:hover {
+	background: #cdf2e6;
+	transform: translateY(-1px);
+}
+
+/* Edit */
+.btn-edit {
+	color: #7a5af8;
+	background: #f0ebff;
+}
+.btn-edit:hover {
+	background: #e2d6ff;
+	transform: translateY(-1px);
+}
+
+/* Delete */
+.btn-delete {
+	color: #e53e3e;
+	background: #fff0f0;
+}
+.btn-delete:hover {
+	background: #ffe0e0;
+	transform: translateY(-1px);
+}
+
+/* Divider between left and actions */
+.resume-divider {
+	width: 1px;
+	height: 32px;
+	background: #e4e8f0;
+	flex-shrink: 0;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\App.razor =====
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["JobRush.styles.css"]" />
+    <ImportMap />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\Routes.razor =====
+<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Components\_Imports.razor =====
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using JobRush
+@using JobRush.Components
+@using JobRush.Components.Layout
+@using JobRush.Components.Subcomponents
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Properties\launchSettings.json =====
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+    "profiles": {
+      "http": {
+        "commandName": "Project",
+        "dotnetRunMessages": true,
+        "launchBrowser": true,
+        "applicationUrl": "http://localhost:5168",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+      },
+      "https": {
+        "commandName": "Project",
+        "dotnetRunMessages": true,
+        "launchBrowser": true,
+        "applicationUrl": "https://localhost:7085;http://localhost:5168",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+      }
+    }
+  }
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\appsettings.Development.json =====
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\appsettings.json =====
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\JobListing.cs =====
+namespace JobRush;
+
+/// <summary>
+/// Stores a job listing.
+/// </summary>
+/// <param name="Title">The job title.</param>
+/// <param name="CompanyName">The company offering the job.</param>
+/// <param name="DatePosted">The date this listing was posted.</param>
+/// <param name="OriginalPostingSite">The site this listing was found on.</param>
+/// <param name="OriginalPostingLink">The link to the original listing.</param>
+/// <param name="Industries">The work industry/industries.</param>
+/// <param name="ExperienceLevels">The desired experience level(s).</param>
+/// <param name="EmploymentTypes">The employment type.</param>
+/// <param name="SalaryRanges">The salary range(s).</param>
+/// <param name="Locations">The work location(s).</param>
+/// <param name="RemoteStatuses">The remote work options.</param>
+/// <param name="CompanySizes">The employing company's size.</param>
+/// <param name="Description">The job description.</param>
+public record class JobListing(
+	string Title,
+	string CompanyName,
+	string DatePosted,
+	string OriginalPostingSite,
+	string OriginalPostingLink,
+	string[] Industries,
+	string[] ExperienceLevels,
+	string[] EmploymentTypes,
+	string[] SalaryRanges,
+	string[] Locations,
+	string[] RemoteStatuses,
+	string[] CompanySizes,
+	string Description
+);
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\JobRush.csproj =====
+<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+	</PropertyGroup>
+</Project>
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\JobRush.sln =====
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobRush", "JobRush.csproj", "{B7FC8D21-4D24-A8F6-676F-D0F00ECD1064}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7FC8D21-4D24-A8F6-676F-D0F00ECD1064}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7FC8D21-4D24-A8F6-676F-D0F00ECD1064}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7FC8D21-4D24-A8F6-676F-D0F00ECD1064}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7FC8D21-4D24-A8F6-676F-D0F00ECD1064}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {38C28F36-9052-43F2-985F-23411CCFF769}
+	EndGlobalSection
+EndGlobal
+
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Program.cs =====
+using JobRush;
+using JobRush.Components;
+
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+// Register dependancies.
+builder.Services.AddScoped<SessionManager>();
+builder.Services.AddScoped<ResumeHandler>();
+builder.Services.AddScoped<ResumeDisplayer>();
+
+// âœ… THIS IS THE CORRECT WAY (FOR BLAZOR SERVER)
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("http://localhost:8000/")
+});
+
+WebApplication app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment()) {
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts();
+}
+
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+app.UseHttpsRedirection();
+
+app.UseAntiforgery();
+
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+app.Run();
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\ProjectOrganization.txt =====
+This file provides a summary of this project's file structure.
+
+JobRush
+ â”œâ”€ Program.cs: This is the program entry point. No edits are likely needed here.
+ â”œâ”€ SessionManager.cs: This is a layer-2 component for handling sessions. Since it's static, it is shared across all sessions.
+ â”œâ”€ ResumeHandler.cs: This is a layer-2 component for uploading, editing, and deleting resumes.
+ â”œâ”€ ResumeDisplayer.cs: This is a layer-2 component for storing the current user's resumes for display.
+ â”œâ”€ [Other Files]: Configuration files, don't worry about these.
+ â”œâ”€ Properties:
+ â”‚   â””â”€ launchSettings.json: Debugger configuration file.
+ â”œâ”€ wwwroot:
+ â”‚   â”œâ”€ app.css: Global CSS that applies to all site pages.
+ â”‚   â”œâ”€ favicon.png: The icon to display on the browser tab.
+ â”‚   â””â”€ [Put other assets here such as images.]
+ â””â”€ Components:
+     â”œâ”€ Layout:
+     â”œâ”€ Pages: Add new pages here.
+     â”‚   â”œâ”€ NotFound.razor: Builtin redirect page for invalid URLs.
+     â”‚   â”œâ”€ Error.razor: Builtin error page.
+     â”‚   â”œâ”€ Counter.razor: Simple demo page showing how to add C# code to pages.
+     â”‚   â””â”€ Weather.razor: Another demo page demonstrating dynamic loading.
+     â”œâ”€ Subcomponents: Folder for non-page components that can be used in pages. (Such as the Navbar.)
+     â””â”€ App.razor: The main HTML file served to browsers. Everything else is rendered into this template.
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Remaining-Integration-Tasks.txt =====
+Resume (Pre)Processor Integration:
+The following code locations require API calls to the (pre)processor node(s):
+ - ResumeHandler.cs, line 68: A resume was just successfully uploaded to the DB. Send the preprocessor the resume's ID and tell it to fetch the resume from the DB.
+ - Components/Pages/Matches.razor, line 30: This needs filled in but the DB doesn't currently store the required info. See function comments.
+ More information is commented at the above locations.
+
+Edit Functionality (Final DB <-> Webserver Integration):
+ - Components/Pages/Edit.razor: Resume edit page display and functionality (use edit function in ResumeHandler, see below).
+ - ResumeHandler.cs: Add edit resume API calls to ResumeHandler component (update DB then reprocess as necessary).
+ - Components/Pages.Upload.razor: Add config input and functionality to resume upload page.
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\Resume.cs =====
+namespace JobRush;
+
+/// <summary>
+/// Stores a user's resume file with job match configuration.
+/// </summary>
+/// <param name="UserID">The database ID of this resume's associated user (hex string).</param>
+/// <param name="ResumeID">The database ID of this resume (hex string).</param>
+/// <param name="Filename">The name of the resume.</param>
+/// <param name="FileBytes64">The resume file as a base64 binary data string.</param>
+/// <param name="UploadDate">The date of the resume upload.</param>
+/// <param name="Config">The resume's job match configuration data.</param>
+public record class Resume(
+	string UserID,
+	string? ResumeID, // Null if DB ID unknown, such as during initial upload.
+	string Filename,
+	string? FileBytes64, // Null when retrieved from DB, since raw file is not needed for display.
+	string UploadDate,
+	ResumeConfig Config
+);
+
+/// <summary>
+/// Stores job match configuration data for a resume.
+/// </summary>
+/// <param name="IndustryPreferences">The resume owner's desired work industry/industries.</param>
+/// <param name="ExperienceLevels">The resume owner's desired job experience level. (Entry-level, senior, etc.)</param>
+/// <param name="EmploymentType">The resume owner's desired employment type. (Full-time, part-time, etc.)</param>
+/// <param name="ExpectedSalaryRanges">The resume owner's desired salary range(s).</param>
+/// <param name="Locations">The resume owner's desired work location(s).</param>
+/// <param name="RemoteStatus">The resume owner's remote work preference.</param>
+/// <param name="CompanySizes">The resume owner's desired company size(s).</param>
+/// <param name="Tags">A set of misc. strings for job match indexing and filtering.</param>
+public record class ResumeConfig(
+	string[] IndustryPreferences,
+	string[] ExperienceLevels,
+	string[] EmploymentType,
+	string[] ExpectedSalaryRanges,
+	string[] Locations,
+	string[] RemoteStatus,
+	string[] CompanySizes,
+	string[] Tags
+);
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\ResumeDisplayer.cs =====
+namespace JobRush;
+/// <summary>
+/// Caches and displays the current user's resumes. This class is unique for each client connection.
+/// </summary>
+internal class ResumeDisplayer {
+	/// <summary>
+	/// The currently authenticated user's resumes.
+	/// </summary>
+	private readonly List<Resume> resumes = [];
+
+	/// <summary>
+	/// Gets an array containing the current user's resumes.
+	/// </summary>
+	/// <returns>An array copy of the user's resume list.</returns>
+	public Resume[] GetResumes() => resumes.ToArray();
+
+	/// <summary>
+	/// Returns the resume with the given DB ID, if it exists.
+	/// </summary>
+	/// <param name="resumeID">The ID of the desired resume (hexadecimal string).</param>
+	/// <returns></returns>
+	public Resume? GetResumeByID(string resumeID) => resumes.FirstOrDefault(r => r.ResumeID == resumeID);
+
+	/// <summary>
+	/// Adds the given resume to the user's resume list and updates applicable UI.
+	/// </summary>
+	/// <param name="resume">The resume to add.</param>
+	public void AddResume(Resume resume) {
+		if (resume.ResumeID == null) return; // TODO: Return feedback if add fails.
+		resumes.Add(resume);
+		ResumeListUpdated?.Invoke();
+	}
+
+	/// <summary>
+	/// Removes the first resume matching the given DB ID.
+	/// </summary>
+	/// <param name="resumeID">The DB ID of the resume to remove.</param>
+	public void RemoveResume(string resumeID) {
+		Resume? targetResume = GetResumeByID(resumeID);
+		if (targetResume == null) return; // TODO: Perhaps return feedback if remove fails?
+		resumes.Remove(targetResume);
+		ResumeListUpdated?.Invoke();
+	}
+
+	/// <summary>
+	/// Invoked when the resume list is added to, updated, or removed from.
+	/// </summary>
+	public event Action ResumeListUpdated;
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\ResumeHandler.cs =====
+using System.Text.Json;
+
+namespace JobRush;
+/// <summary>
+/// Handles resume uploads, edits, and deletion. This class is unique for each client connection.
+/// </summary>
+internal class ResumeHandler(SessionManager sessionManager, ResumeDisplayer resumeDisplayer) {
+	// Injected Dependencies
+	private readonly HttpClient httpClient = new();
+	private readonly SessionManager sessionManager = sessionManager;
+	private readonly ResumeDisplayer resumeDisplayer = resumeDisplayer;
+
+	/// <summary>
+	/// Uploads a resume to the database and notifies the preprocessor node.
+	/// </summary>
+	/// <param name="resume">The resume to upload.</param>
+	/// <returns>True if successful.</returns>
+	public bool UploadResume(Resume resume) {
+		if (!sessionManager.IsAuthenticated()) return false; // Fail if a resume is somehow uploaded before authentication.
+
+		try {
+			// Attempt to store resume in DB.
+			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/insertEntry", new {
+				collection_name = "Resumes",
+				entry = new {
+					filename = resume.Filename,
+					userId = resume.UserID,
+					data = resume.FileBytes64,
+					uploadDate = resume.UploadDate,
+					isActive = true,
+					locationConfig = resume.Config.Locations,
+					expectedSalaryConfig = resume.Config.ExpectedSalaryRanges,
+					jobTypeConfig = resume.Config.EmploymentType,
+					industryConfig = resume.Config.IndustryPreferences,
+					experienceLevelConfig = resume.Config.ExperienceLevels,
+					remoteConfig = resume.Config.RemoteStatus,
+					companySizeConfig = resume.Config.CompanySizes,
+					tags = resume.Config.Tags
+				}
+			}).Result;
+
+			// If request failed at HTTP level, return false.
+			if (!response.IsSuccessStatusCode) return false;
+
+			// Get the DB ID of the resume that was just uploaded.
+			HttpResponseMessage response2 = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/fetch", new {
+				collection_name = "Resumes",
+				filter = new { // Hopefully this should filter for the exact uploaded resume, since we don't have the ID yet...
+					userId = resume.UserID,
+					filename = resume.Filename,
+					uploadDate = resume.UploadDate
+				},
+				projection = new { _id = 1 }
+			}).Result;
+
+			// If second request failed at HTTP level, return false.
+			if (!response2.IsSuccessStatusCode) return false;
+
+			// Convert the second response content into a JSON object.
+			using JsonDocument response2JSON = JsonDocument.Parse(response2.Content.ReadAsStringAsync().Result);
+
+			// Extract the resume's database ID.
+			string resumeID = response2JSON.RootElement.GetProperty("result")[0].GetProperty("_id").GetString();
+
+			// Add new resume to this session's resume list, including the fetched DB ID.
+			resumeDisplayer.AddResume(resume with { ResumeID = resumeID });
+
+			// TODO: Notify preprocessor of new resume, tell it to fetch from DB and preprocess.
+				// resumeID (string) variable should be sent to preprocessor so it can locate the resume in the DB.
+
+			return true; // Upload successful.
+		} catch {
+			// Handle network errors.
+			return false;
+		}
+	}
+	
+	public bool EditResume(Resume resume) {
+		if (!sessionManager.IsAuthenticated()) return false; // Fail if a resume is somehow edited before authentication.
+
+		// TODO: Update the given resume on the DB, return true if successfull.
+
+		// TODO: Notify preprocessor (or processor?? whatever component uses configuration like expected salary) to re-evaluate resume, similar to the call in UploadResume.
+
+		return true; // Edit successful.
+	}
+
+	/// <summary>
+	/// Removes a specified resume from the DB.
+	/// </summary>
+	/// <param name="resume">The local representation of the resume to remove.</param>
+	/// <returns>True if successful.</returns>
+	public bool DeleteResume(Resume resume) {
+		if (!sessionManager.IsAuthenticated()) return false; // Fail if a resume deletion is somehow requested before authentication.
+		if (resume.ResumeID == null) return false; // Resumes require known DB IDs to properly delete. (This should only be null during upload process.)
+
+		try {
+			// Attempt to remove resume from DB.
+			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/deleteEntry", new {
+				collection_name = "Resumes",
+				filter = new {
+					userId = resume.UserID, // This should be redundant, but it could protect other users from glitches.
+					_id = resume.ResumeID
+				}
+			}).Result;
+
+			// If request failed at HTTP level, return false.
+			if (!response.IsSuccessStatusCode) return false;
+
+			// If DB deletion errored, return false.
+			using JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
+			if (!responseJSON.RootElement.GetProperty("result").GetProperty("success").GetBoolean()) return false;
+
+			// Remove resume from local list (and update applicable UI).
+			resumeDisplayer.RemoveResume(resume.ResumeID);
+
+			return true; // Deletion successful.
+		} catch {
+			// Handle network errors.
+			return false;
+		}
+	}
+}
+
+===== C:\Users\prana\Capstone_Intelligent_Job_Searching\WebServer\SessionManager.cs =====
+using System.Text.Json;
+
+namespace JobRush;
+/// <summary>
+/// Handles user authentication. This class is unique for each client connection.
+/// </summary>
+internal class SessionManager(ResumeDisplayer resumeDisplayer) {
+	// Injected Dependencies
+	private readonly HttpClient httpClient = new();
+	private readonly ResumeDisplayer resumeDisplayer = resumeDisplayer;
+
+	private bool authenticated = false;
+
+	/// <summary>
+	/// The database ID of the currently authenticated user (hex string). Null if not authenticated.
+	/// </summary>
+	private string? userID;
+	/// <summary>
+	/// The username of the currently authenticated user. Null if not authenticated.
+	/// </summary>
+	private string? username;
+
+	/// <summary>
+	/// Checks whether the current session is authenticated.
+	/// </summary>
+	/// <returns>True if session is authenticated.</returns>
+	public bool IsAuthenticated() => authenticated;
+	/// <summary>
+	/// Gets the current session's user's database ID.
+	/// </summary>
+	/// <returns>The database ID of the currently authenticated user, or null if not authenticated.</returns>
+	public string? GetUserID() => userID;
+
+	/// <summary>
+	/// Unauthenticates the current session. Should be followed by a redirect.
+	/// </summary>
+	public void Logout() => authenticated = false;
+
+	/// <summary>
+	/// Performs a DB API call to authenticate the provided credentials.
+	/// </summary>
+	/// <param name="username">The username to authenticate.</param>
+	/// <param name="password">The password to authenticate.</param>
+	/// <returns>True if authentication succeeds (or already authenticated).</returns>
+	public bool AttemptLogin(string username, string password) {
+		if (authenticated) return true;
+		
+		try {
+			// Ask DB if username/password combo is valid.
+			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/login", new {
+				username,
+				password
+			}).Result;
+
+			// If request failed at HTTP level, return false.
+			if (!response.IsSuccessStatusCode) return false;
+
+			// Convert the response content into a JSON object.
+			using JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
+
+			// Get the success property if possible.
+			if (responseJSON.RootElement.TryGetProperty("result", out JsonElement successElement)) {
+				// If DB confirmed credentials are valid...
+				if (successElement.GetBoolean()) {
+					// Query DB for userID.
+					HttpResponseMessage response2 = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/fetch", new {
+						collection_name = "Users",
+						filter = new { username },
+						projection = new { _id = 1 }
+					}).Result;
+
+					// If second request failed at HTTP level, return false.
+					if (!response2.IsSuccessStatusCode) return false;
+
+					// Convert the second response content into a JSON object.
+					using JsonDocument response2JSON = JsonDocument.Parse(response2.Content.ReadAsStringAsync().Result);
+
+					// Extract and record the user's database ID.
+					userID = response2JSON.RootElement.GetProperty("result")[0].GetProperty("_id").GetString();
+
+					// Retrieve the user's existing resumes from the DB, if any.
+					HttpResponseMessage response3 = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/fetch", new {
+						collection_name = "Resumes",
+						filter = new { userId = userID },
+						projection = new { // 0 skips value in query result.
+							userId = 0,
+							data = 0,
+							isActive = 0,
+							extractedKeywords = 0,
+							atsScore = 0
+						}
+					}).Result;
+
+					// If third request failed at HTTP level, return false.
+					if (!response3.IsSuccessStatusCode) return false;
+
+					// Convert the third response content into a JSON object.
+					using JsonDocument response3JSON = JsonDocument.Parse(response3.Content.ReadAsStringAsync().Result);
+
+					// Extract the resume elements from the response JSON.
+					List<JsonElement> returnedResumes = new(response3JSON.RootElement.GetProperty("result").EnumerateArray());
+
+					// Convert each resume element into an object and store them in ResumeDisplayer.
+					foreach (JsonElement element in returnedResumes) {
+						string GetSubelementString(string subelementName) => element.GetProperty(subelementName).GetString();
+						string[] GetSubelementArray(string subelementName) => element.GetProperty(subelementName).EnumerateArray().Select(x => x.GetString()).ToArray();
+						resumeDisplayer.AddResume(new Resume(
+							UserID: userID,
+							ResumeID: GetSubelementString("_id"),
+							Filename: GetSubelementString("filename"),
+							FileBytes64: null, // Raw file is not needed for display.
+							UploadDate: GetSubelementString("uploadDate"),
+							new ResumeConfig(
+								IndustryPreferences: GetSubelementArray("industryConfig"),
+								ExperienceLevels: GetSubelementArray("experienceLevelConfig"),
+								EmploymentType: GetSubelementArray("jobTypeConfig"),
+								ExpectedSalaryRanges: GetSubelementArray("expectedSalaryConfig"),
+								Locations: GetSubelementArray("locationConfig"),
+								RemoteStatus: GetSubelementArray("remoteConfig"),
+								CompanySizes: GetSubelementArray("companySizeConfig"),
+								Tags: GetSubelementArray("tags")
+							)
+						));
+					}
+
+					this.username = username; // Record current user's username.
+					authenticated = true;
+					return true; // Indicate successful login.
+				}
+			}
+
+			// Return false by default to prevent login if DB response fails.
+			return false;
+		} catch {
+			// Handle network errors.
+			return false;
+		}
+	}
+
+	/// <summary>
+	/// Performs a DB API call to add a new user with the provided credentials. Automatically authenticates if successfull.
+	/// </summary>
+	/// <param name="email">The new user's email.</param>
+	/// <param name="username">The new user's username.</param>
+	/// <param name="password">The new user's password.</param>
+	/// <returns>True if a new user was added successfully.</returns>
+	public bool AttemptSignup(string email, string username, string password) {
+		// Validation rules:
+		if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password)) return false;
+
+		try {
+			// Send signup request to DB API.
+			HttpResponseMessage response = httpClient.PostAsJsonAsync("http://127.0.0.1:8000/insertEntry", new {
+				collection_name = "Users",
+				entry = new {
+					username,
+					passwordHash = password,
+					email
+				}
+			}).Result;
+
+			// If request failed at HTTP level, return false.
+			if (!response.IsSuccessStatusCode) return false;
+
+			// Convert the response content into a JSON object.
+			using JsonDocument responseJSON = JsonDocument.Parse(response.Content.ReadAsStringAsync().Result);
+
+			// Get the success property if possible.
+			if (responseJSON.RootElement.TryGetProperty("result", out JsonElement resultElement) && resultElement.TryGetProperty("success", out JsonElement successElement)) {
+				// Auto-login on successful signup
+				if (successElement.GetBoolean()) {
+					authenticated = true;
+					return true;
+				}
+			}
+
+			// Return false by default.
+			return false;
+		} catch {
+			// Handle network errors.
+			return false;
+		}
+	}
+
+	// Temporary test functions. Simulates a single account with username "admin", password "passwd", and an arbitrary email.
+	private bool FakeAPICallLogin(string username, string password) => username == "admin" && password == "passwd";
+	private bool FakeAPICallSignup(string email, string username, string password) => username != "admin";
+}
+

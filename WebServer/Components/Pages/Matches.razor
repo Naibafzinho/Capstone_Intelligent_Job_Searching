@@ -1,56 +1,118 @@
 @page "/matches/{targetResumeID}"
 @inherits Redirect
+@inject HttpClient http
 
 <PageTitle>Matches</PageTitle>
 
 <div class="matches-wrapper">
-	@foreach (JobListing job in GetResumeJobs(targetResumeID)) {
-		<JobCard jobListing=job />
+	@if (loading)
+	{
+		<p>Loading jobs...</p>
+	}
+	else if (!string.IsNullOrEmpty(error))
+	{
+		<p style="color:red">@error</p>
+	}
+	else
+	{
+		@foreach (JobListing job in jobListings)
+		{
+			<JobCard jobListing=job />
+		}
 	}
 </div>
 
 @code {
-	/// <summary>
-	/// The database ID of the resume to display matches for on this page.
-	/// </summary>
 	[Parameter]
 	public string? targetResumeID { get; set; }
 
-	/// <summary>
-	/// The job listings displayed on this page.
-	/// </summary>
-	public required JobListing[] jobListings { get; set; }
+	public JobListing[] jobListings { get; set; } = [];
 
-	/// <summary>
-	/// Gets the job listings associated with the given resumeID.
-	/// </summary>
-	/// <param name="resumeID">The database ID to filter job listings by.</param>
-	/// <returns>An array of JobListings associated with the target resume.</returns>
-	private JobListing[] GetResumeJobs(string? resumeID) {
-		// TODO: Return an array of JobListings for the resume with the database ID == targetResumeID.
-			// TODO: Query the DB JobPostings table, filter by job postings which have the provided resumeID (NOT JOB POSTING ID).
-			// (At the time of these comments, the DB JobPostings table does not contain an ID for (or any kind of link to) the associated resume.)
-		
-		bool resumeHasJobs = true; // Set this to false if queried resume has no matched jobs.
+	private bool loading = true;
+	private string error = "";
 
-		if (resumeHasJobs) {
-			return [new JobListing( // Replace these values with the return array.
-				Title: "title",
-				CompanyName: "companyname",
-				DatePosted: "dateposted",
-				OriginalPostingSite: "ogpostsite",
-				OriginalPostingLink: "ogpostlink",
-				Industries: ["industry"],
-				ExperienceLevels: ["experience"],
-				EmploymentTypes: ["employmenttype"],
-				SalaryRanges: ["salary"],
-				Locations: ["location"],
-				RemoteStatuses: ["remote"],
-				CompanySizes: ["companysize"],
-				Description: "description"
-			)];
-		} else {
-			return []; // Return empty array if resume has no associated jobs.
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var response = await http.PostAsJsonAsync(
+				"http://localhost:8000/fetch",
+				new
+				{
+					collection_name = "JobPostings",
+					filter = new { },
+					projection = new { }
+				}
+			);
+
+			var result = await response.Content.ReadFromJsonAsync<FetchResponse>();
+
+			if (result?.result != null)
+			{
+				jobListings = result.result.Select(job => new JobListing(
+					Title: job.title ?? "No Title",
+					CompanyName: job.company ?? "Unknown",
+					DatePosted: job.datePosted ?? "",
+					OriginalPostingSite: job.domain ?? "",
+					OriginalPostingLink: job.url ?? "",
+
+					// ✅ SAFE ARRAYS (FIX)
+					Industries: SafeArray(job.industryC),
+					ExperienceLevels: SafeArray(job.experienceLevelC),
+					EmploymentTypes: SafeArray(job.jobTypeC),
+					SalaryRanges: SafeArray(job.salaryRangeC),
+					Locations: SafeArray(job.locationC),
+					RemoteStatuses: SafeArray(job.remoteC),
+
+					CompanySizes: SafeArray(new string[] { job.companySizeC ?? "" }),
+
+					Description: job.text ?? "No description available"
+				)).ToArray();
+			}
+
+			loading = false;
 		}
+		catch (Exception ex)
+		{
+			error = ex.Message;
+			loading = false;
+		}
+	}
+
+	// =============================
+	// SAFE ARRAY HELPER (CRITICAL FIX)
+	// =============================
+	private string[] SafeArray(string[] arr)
+	{
+		if (arr == null || arr.Length == 0)
+			return new string[] { "" }; // prevents JobCard crash
+
+		return arr;
+	}
+
+	// =============================
+	// RESPONSE MODELS
+	// =============================
+	public class FetchResponse
+	{
+		public List<JobDB> result { get; set; }
+	}
+
+	public class JobDB
+	{
+		public string title { get; set; }
+		public string company { get; set; }
+		public string datePosted { get; set; }
+		public string domain { get; set; }
+		public string url { get; set; }
+		public string text { get; set; }
+
+		public string[] locationC { get; set; }
+		public string[] salaryRangeC { get; set; }
+		public string[] jobTypeC { get; set; }
+		public string[] industryC { get; set; }
+		public string[] experienceLevelC { get; set; }
+		public string[] remoteC { get; set; }
+		public string companySizeC { get; set; }
 	}
 }

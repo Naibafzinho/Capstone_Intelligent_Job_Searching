@@ -1,30 +1,31 @@
-"""
-main.py
--------
-Extract all skills from ONE resume and print them.
-Also saves them to a file.
-"""
-
+from fastapi import FastAPI
+from bson import ObjectId
+import tempfile
+import os
 import pandas as pd
-from pathlib import Path
+from datetime import datetime
+import sys
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+db_path = os.path.join(project_root, 'DB')
+
+sys.path.append(project_root)
+sys.path.append(db_path)
 
 from extractor import SkillExtractor, read_file
+from DB.DB_Management import DBManagement
 
+app = FastAPI()
 
-# ── Config ─────────────────────────────────────────────────────
+# -----------------------------
+# CONFIG
+# -----------------------------
+SKILLS_CSV = "Skills.csv"
+SKILL_COLUMN = "Example"
+SIMILARITY = 0.80
 
-RESUME_FILE   = "resumes/my_resume.pdf"
-JOB_DESC_FILE = "job_description.txt"
-SKILLS_CSV    = "Skills.csv"
-SKILL_COLUMN  = "Example"
-
-SIMILARITY = 0.80   # balanced threshold
-
-
-# ── Load skills ────────────────────────────────────────────────
 
 def load_skills(csv_path: str, column: str):
-
     df = pd.read_csv(csv_path)
 
     if column not in df.columns:
@@ -37,100 +38,107 @@ def load_skills(csv_path: str, column: str):
         .str.strip()
     )
 
-    # Clean dataset
     skills = skills[skills.str.len() > 2]
     skills = skills.drop_duplicates()
-
-    print(f"Loaded {len(skills)} total skills")
 
     return skills.tolist()
 
 
-# ── Match logic ────────────────────────────────────────────────
+# Load once
+skills_list = load_skills(SKILLS_CSV, SKILL_COLUMN)
+extractor = SkillExtractor(skills_list)
 
-def compute_match(resume_skills, job_skills):
+from dotenv import load_dotenv
 
-    resume_set = set(resume_skills)
-    job_set    = set(job_skills)
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "DB", ".env"))
 
-    matched = sorted(resume_set & job_set)
-    missing = sorted(job_set - resume_set)
-
-    score = round(len(matched) / len(job_set) * 100, 1) if job_set else 0
-
-    return matched, missing, score
+db_manager = DBManagement()
 
 
-# ── Main ──────────────────────────────────────────────────────
+@app.post("/extract")
+def extract(data: dict):
+    resume_id = data.get("resumeId")
 
-def main():
+    if not resume_id:
+        return {"error": "resumeId required"}
 
-    print("Loading skill dataset...")
-    skills = load_skills(SKILLS_CSV, SKILL_COLUMN)
+    print(f"[Extractor] Received resumeId: {resume_id}")
 
-    print("Initializing extractor...")
-    extractor = SkillExtractor(skills)
+    try:
+        resume_id_obj = ObjectId(resume_id)
+    except:
+        return {"error": "Invalid resumeId"}
 
-    # ── JOB DESCRIPTION ──
-    print("\nReading job description...")
-    job_text = Path(JOB_DESC_FILE).read_text(encoding="utf-8")
+    # -----------------------------
+    # FETCH RESUME
+    # -----------------------------
+    resumes = db_manager.fetch(
+        collection_name="Resumes",
+        filter={"_id": resume_id_obj}
+    )
 
-    job_skills = extractor.extract(job_text, SIMILARITY)
-    print(f"Job skills found: {len(job_skills)}")
+    print(f"[Extractor] Fetch result count: {len(resumes)}")
 
-    # ── RESUME ──
-    resume_path = Path(RESUME_FILE)
+    if not resumes or len(resumes) == 0:
+        return {"error": "Resume not found"}
 
-    if not resume_path.exists():
-        print(f"Resume not found: {RESUME_FILE}")
-        return
+    resume = resumes[0]
+    binary_data = resume.get("data")
 
-    print(f"\nAnalyzing: {resume_path.name}")
+    if not binary_data:
+        return {"error": "No file data found"}
 
-    resume_text = read_file(resume_path)
-    resume_skills = extractor.extract(resume_text, SIMILARITY)
+    # -----------------------------
+    # SAVE TEMP FILE
+    # -----------------------------
+    suffix = ".pdf"
 
-    # ── PRINT RESUME SKILLS ──
-    print("\n===== RESUME SKILLS =====\n")
-    for skill in resume_skills:
-        print(f"- {skill}")
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(binary_data)
+        temp_path = tmp.name
 
-    print(f"\nTotal resume skills: {len(resume_skills)}")
+    print(f"[Extractor] Temp file created: {temp_path}")
 
-    # ── MATCHING ──
-    matched, missing, score = compute_match(resume_skills, job_skills)
+    try:
+        # -----------------------------
+        # READ TEXT
+        # -----------------------------
+        text = read_file(temp_path)
 
-    print("\n===== MATCH RESULT =====\n")
-    print(f"Match Score: {score}%")
+        if not text or len(text.strip()) == 0:
+            print("[Extractor] No text extracted")
+            return {"error": "Failed to extract text"}
 
-    print("\nMatched Skills:")
-    for s in matched:
-        print(f"- {s}")
+        print(f"[Extractor] Text length: {len(text)}")
 
-    print("\nMissing Skills:")
-    for s in missing:
-        print(f"- {s}")
+        # -----------------------------
+        # EXTRACT SKILLS
+        # -----------------------------
+        resume_skills = extractor.extract(text, SIMILARITY)
 
-    # ── SAVE OUTPUT ──
-    with open("extracted_skills.txt", "w", encoding="utf-8") as f:
-        f.write("RESUME SKILLS:\n")
-        for s in resume_skills:
-            f.write(s + "\n")
+        print(f"[Extractor] Skills extracted: {len(resume_skills)}")
 
-        f.write("\nJOB SKILLS:\n")
-        for s in job_skills:
-            f.write(s + "\n")
+        # -----------------------------
+        # STORE IN DB
+        # -----------------------------
+        db_manager.update_value(
+            flt={"_id": resume_id_obj},
+            attribute="extractedKeywords",
+            new_value=resume_skills,
+            collection_name="Resumes"
+        )
 
-        f.write("\nMATCHED SKILLS:\n")
-        for s in matched:
-            f.write(s + "\n")
+        print("[Extractor] DB updated successfully")
 
-        f.write("\nMISSING SKILLS:\n")
-        for s in missing:
-            f.write(s + "\n")
+        return {
+            "resumeId": resume_id,
+            "skills": resume_skills
+        }
 
-    print("\nSaved results to extracted_skills.txt")
+    except Exception as e:
+        print(f"[Extractor ERROR] {e}")
+        return {"error": str(e)}
 
-
-if __name__ == "__main__":
-    main()
+    finally:
+        os.remove(temp_path)
+        print("[Extractor] Temp file deleted")

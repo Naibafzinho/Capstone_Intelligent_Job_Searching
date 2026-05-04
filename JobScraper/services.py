@@ -220,7 +220,10 @@ def format_job_entry(job_row: pd.Series) -> dict:
             date_posted_str = str(raw_date)
 
 
-    # 🔥 IMPROVED keyword extraction (safe + better)
+    # Keyword Extraction of Job Description
+
+    # Note - The JobSpy API is finicky, sometimes being blocked by linkedin and indeed
+    # so job description may not be available.
 
     title = job_row.get("title") or ""
     description = description or ""
